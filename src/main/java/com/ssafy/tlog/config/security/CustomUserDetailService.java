@@ -1,12 +1,12 @@
 package com.ssafy.tlog.config.security;
 
-import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +16,7 @@ public class CustomUserDetailService implements UserDetailsService {
 
     // username을 기반으로 UserDetails 객체 반환
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .map(CustomUserDetails::new)
