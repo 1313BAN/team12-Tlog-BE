@@ -1,5 +1,7 @@
 package com.ssafy.tlog.config.security;
 
+import com.ssafy.tlog.config.jwt.LoginFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -11,10 +13,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final AuthenticationManager authenticationManager;
 
     @Bean
     public RoleHierarchy roleHierarchy() {
@@ -42,9 +47,11 @@ public class SecurityConfig {
         http.formLogin(form -> form.disable());
         // HTTP 기본 인증 비활성화
         http.httpBasic(basic -> basic.disable());
-
         // 전체 URL 허용 -> 권한 부여 필요!!
         http.authorizeHttpRequests((auth) -> auth.requestMatchers("/").permitAll());
+        //  로그인 필터 추가
+        http.addFilterAt(new LoginFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
