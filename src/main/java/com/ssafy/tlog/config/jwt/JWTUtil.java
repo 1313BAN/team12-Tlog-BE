@@ -2,6 +2,7 @@ package com.ssafy.tlog.config.jwt;
 
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +17,55 @@ public class JWTUtil {
     }
 
     // user_id 추출
-    
+    public int getUserId(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userId", Integer.class);
+    }
+
     // name 추출
+    public String getUsername(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("username", String.class);
+    }
 
     // role 추출
+    public String getRole(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
 
     // 만료 검증
+    public Boolean isExpired(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .before(new Date());
+    }
 
     // 토큰 생성
+    public String createJwt(int userId, String username, String role, Long expiredMs){
+        return Jwts.builder()
+                .claim("userId",userId)
+                .claim("username",username)
+                .claim("role",role)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis()+expiredMs))
+                .signWith(secretKey)
+                .compact();
+    }
 }
