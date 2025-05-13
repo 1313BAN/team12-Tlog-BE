@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
     }
 
     // 401 BAD_REQUEST
-    @ExceptionHandler(UsernameNotFoundException.class)
+    @ExceptionHandler(UsernameNotFoundException.class) // 커스텀에러 이름을 객체 인자로 전달
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
         ErrorResponse error = new ErrorResponse(
                 401,
