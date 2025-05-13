@@ -1,5 +1,7 @@
 package com.ssafy.tlog.config.security;
 
+import com.ssafy.tlog.config.jwt.JWTFilter;
+import com.ssafy.tlog.config.jwt.JWTUtil;
 import com.ssafy.tlog.config.jwt.LoginFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
     @Bean
     public RoleHierarchy roleHierarchy() {
@@ -49,9 +53,12 @@ public class SecurityConfig {
         http.httpBasic(basic -> basic.disable());
         // 전체 URL 허용 -> 권한 부여 필요!!
         http.authorizeHttpRequests((auth) -> auth.requestMatchers("/").permitAll());
+        // JWTFilter를 LoginFilter 전에 실행
+        http.addFilterBefore(new JWTFilter(jwtUtil),LoginFilter.class);
         //  로그인 필터 추가
-        http.addFilterAt(new LoginFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
-
+        http.addFilterAt(new LoginFilter(authenticationManager, jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        // 세션 관리
+        http.sessionManagement((session)->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }

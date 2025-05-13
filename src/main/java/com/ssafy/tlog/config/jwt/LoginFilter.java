@@ -1,18 +1,24 @@
 package com.ssafy.tlog.config.jwt;
 
+import com.ssafy.tlog.config.security.CustomUserDetails;
+import com.ssafy.tlog.exception.custom.BadCredentialsException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collection;
+import java.util.Iterator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
     // 로그인 시도 시 인증 로직 처리
     @Override
@@ -30,14 +36,22 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // 로그인 성공하면 실행 -> JWT 발급
     @Override
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        int userId = customUserDetails.getUserId();
+        String username = customUserDetails.getUsername();
 
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+        GrantedAuthority auth = iterator.next();
+        String role = auth.getAuthority();
+
+        String access = jwtUtil.createJwt(userId, username, role,60*60*10L ); // 10시간
+        response.addHeader("access","Bearer "+access);
     }
 
     // 로그인 실패하면 실행
     @Override
     public void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed){
-
+        throw new BadCredentialsException("로그인에 실패하였습니다.");
     }
-
-
 }

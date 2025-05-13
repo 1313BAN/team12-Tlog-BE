@@ -1,5 +1,6 @@
 package com.ssafy.tlog.exception.global;
 
+import com.ssafy.tlog.exception.custom.BadCredentialsException;
 import com.ssafy.tlog.exception.custom.InvalidDataException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler {
     }
 
     // 401 BAD_REQUEST
-    @ExceptionHandler(UsernameNotFoundException.class)
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
         ErrorResponse error = new ErrorResponse(
                 401,

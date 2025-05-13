@@ -22,15 +22,20 @@ public class CustomUserDetails implements UserDetails {
         return authorities;
     }
 
-    @Override
-    public String getPassword() {
-        return user.getPassword();
+    public int getUserId(){
+        return user.getUserId();
     }
 
     @Override
     public String getUsername() {
         return user.getUsername();
     }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
