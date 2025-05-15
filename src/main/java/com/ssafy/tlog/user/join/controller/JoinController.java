@@ -13,19 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth/users")
+@RequestMapping("/api/auth")
 public class JoinController {
     private final JoinService joinService;
 
     // 닉네임 중복 확인
-    @GetMapping
+    @GetMapping("/check-name")
     public ResponseEntity<String> checkNickname (@RequestParam String nickname) {
         joinService.checkNickname(nickname);
         return ResponseEntity.ok("사용 가능한 닉네임 입니다.");
     }
 
     // 회원가입
-    @PostMapping
+    @PostMapping("/signup")
     public ResponseEntity<String> join(@RequestBody JoinDtoRequest joinDtoRequest) {
         joinService.join(joinDtoRequest);
         return ResponseEntity.ok().build();

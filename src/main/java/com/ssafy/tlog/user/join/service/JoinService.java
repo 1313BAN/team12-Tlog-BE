@@ -25,15 +25,9 @@ public class JoinService {
 
     // 회원가입
     public void join(JoinDtoRequest joinDtoRequest) {
-        // 이미 있는 username인지 검증
-        if(userRepository.existsByUsername(joinDtoRequest.getUsername())){
-            // 400 -> 수정 필요
-            throw new InvalidDataException("이미 사용 중인 아이디입니다.");
-        }
-
         User user = new User();
-        user.setUsername(joinDtoRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(joinDtoRequest.getPassword())); // 비밀번호 암호화 후 저장
+        user.setNickname(joinDtoRequest.getNickname());
+        user.setSocialId(passwordEncoder.encode(joinDtoRequest.getSocialId())); // socialId 암호화 후 저장
         user.setRole("USER"); // USER로 기본 설정
 
         // userRepository를 통해 DB에 저장 -> JPA 기능
