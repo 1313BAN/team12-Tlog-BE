@@ -57,6 +57,17 @@ public class JWTUtil {
                 .before(new Date());
     }
 
+    // 토큰 판단
+    public String getCategory(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("category", String.class);
+    }
+
+
     // 토큰 생성 -> true가 토큰이 만료
     public String createJwt(String category, int userId, String username, String role, Long expiredMs){
         return Jwts.builder()
