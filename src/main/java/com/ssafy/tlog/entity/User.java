@@ -18,7 +18,10 @@ public class User {
     private int userId;
 
     @Column(unique=true)
-    private String username;
-    private String password;
+    private String nickname;
+
+    @Column(unique=true)
+    private String socialId;
+
     private String role;
 }

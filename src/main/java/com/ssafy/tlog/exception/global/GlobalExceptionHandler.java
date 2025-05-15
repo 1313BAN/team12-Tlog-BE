@@ -2,6 +2,7 @@ package com.ssafy.tlog.exception.global;
 
 import com.ssafy.tlog.exception.custom.BadCredentialsException;
 import com.ssafy.tlog.exception.custom.InvalidDataException;
+import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -42,6 +43,17 @@ public class GlobalExceptionHandler {
                 e.getMessage()
         );
         return ResponseEntity.status(404).body(error);
+    }
+
+    // 409 Conflict
+    @ExceptionHandler(NicknameConflictException.class)
+    public ResponseEntity<ErrorResponse> handleNicknameConflictException(NicknameConflictException e) {
+        ErrorResponse error = new ErrorResponse(
+                409,
+                "Conflict",
+                e.getMessage()
+        );
+        return ResponseEntity.status(409).body(error);
     }
 
     // 500 INTERNAL_SERVER_ERROR
