@@ -58,8 +58,9 @@ public class JWTUtil {
     }
 
     // 토큰 생성 -> true가 토큰이 만료
-    public String createJwt(int userId, String username, String role, Long expiredMs){
+    public String createJwt(String category, int userId, String username, String role, Long expiredMs){
         return Jwts.builder()
+                .claim("category",category)
                 .claim("userId",userId)
                 .claim("username",username)
                 .claim("role",role)
