@@ -2,7 +2,7 @@ package com.ssafy.tlog.config.security;
 
 import com.ssafy.tlog.config.jwt.JWTFilter;
 import com.ssafy.tlog.config.jwt.JWTUtil;
-import com.ssafy.tlog.config.jwt.LoginFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,26 +37,35 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+//    @Bean
+//    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+//        return authenticationConfiguration.getAuthenticationManager();
+//    }
+
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
+        http.csrf(csrf -> csrf.disable())
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login").permitAll()  // 로그인 엔드포인트는 인증 없이 접근 가능
-                .anyRequest().authenticated()
+                    .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
+                    .anyRequest().authenticated()
             )
             .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-            .addFilterAt(new LoginFilter(authenticationManager(http), jwtUtil), 
-                        UsernamePasswordAuthenticationFilter.class)
-            .sessionManagement(session -> 
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"statusCode\":401,\"errorCode\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
+                    })
+            );
 
         return http.build();
     }

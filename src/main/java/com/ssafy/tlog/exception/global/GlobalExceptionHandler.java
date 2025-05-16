@@ -23,9 +23,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(error);
     }
 
-    // 401 BAD_REQUEST
-    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    // 401 UNAUTHORIZED
+    @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        ErrorResponse error = new ErrorResponse(
+                401,
+                "UNAUTHORIZED",
+                e.getMessage()
+        );
+        return ResponseEntity.status(401).body(error);
+    }
+
+    // 401 UNAUTHORIZED
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
         ErrorResponse error = new ErrorResponse(
                 401,
                 "UNAUTHORIZED",

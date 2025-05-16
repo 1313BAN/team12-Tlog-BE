@@ -1,0 +1,101 @@
+package com.ssafy.tlog.user.join.controller;
+
+import com.ssafy.tlog.common.response.ApiResponse;
+import com.ssafy.tlog.common.response.ResponseWrapper;
+import com.ssafy.tlog.config.jwt.JWTUtil;
+import com.ssafy.tlog.config.security.CustomUserDetailService;
+import com.ssafy.tlog.config.security.CustomUserDetails;
+import com.ssafy.tlog.exception.global.ErrorResponse;
+import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
+import com.ssafy.tlog.user.join.dto.LoginRequest;
+import com.ssafy.tlog.user.join.service.JoinService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
+    private final JoinService joinService;
+    private final CustomUserDetailService userDetailsService; // 추가
+
+
+    private long accessExpiration = 3600000; // 1시간
+    private long refreshExpiration = 604800000; // 7일
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        try {
+            System.out.println("로그인 시도: socialId = " + loginRequest.getSocialId());
+
+            // 직접 사용자 조회
+            UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getSocialId());
+            System.out.println("사용자 찾음: " + userDetails.getUsername());
+
+            // 여기서 AuthenticationManager를 사용하지 않고 직접 사용자 정보로 토큰 생성
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+
+            int userId = customUserDetails.getUserId();
+            String socialId = customUserDetails.getUsername();
+            String nickname = customUserDetails.getUser().getNickname();
+            String role = customUserDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+
+            System.out.println("토큰 생성 중: userId=" + userId + ", nickname=" + nickname + ", role=" + role);
+            String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
+            String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
+
+            // 헤더에 토큰 추가 - Bearer 접두사 유지 (헤더에서는 공백 허용됨)
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("access", "Bearer " + accessToken);
+
+            // 쿠키에 refresh 토큰 추가 - Bearer 접두사 제거
+            Cookie refreshCookie = new Cookie("refresh", refreshToken); // 공백 없이 토큰만 저장
+            refreshCookie.setMaxAge(7*24*60*60);
+            refreshCookie.setPath("/api/auth");
+            refreshCookie.setHttpOnly(true);
+            response.addCookie(refreshCookie);
+
+            System.out.println("로그인 완료, 응답 반환");
+            return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
+        } catch (Exception e) {
+            System.out.println("로그인 실패: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
+            ErrorResponse error = new ErrorResponse(
+                    401,
+                    "UNAUTHORIZED",
+                    "로그인 실패: " + e.getMessage()
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+    }
+
+    // 닉네임 중복 확인
+    @GetMapping("/check-name")
+    public ResponseEntity<ResponseWrapper<Void>> checkNickname(@RequestParam String nickname) {
+        joinService.checkNickname(nickname);
+        return ApiResponse.success(HttpStatus.OK, "사용 가능한 닉네임 입니다.");
+    }
+
+    // 회원가입
+    @PostMapping("/signup")
+    public ResponseEntity<ResponseWrapper<Void>> join(@RequestBody JoinDtoRequest joinDtoRequest) {
+        joinService.join(joinDtoRequest);
+        return ApiResponse.success(HttpStatus.CREATED, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
+    }
+}
