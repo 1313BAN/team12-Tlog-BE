@@ -22,11 +22,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
 
-    @Value("${access_expiration}")
-    private long accessExpiration;
-
-    @Value("${refresh_expiration}")
-    private long refreshExpiration;
+    private long accessExpiration = 3600000; // 1시간
+    private long refreshExpiration = 604800000; // 7일
 
     // 로그인 시도 시 인증 로직 처리
     @Override

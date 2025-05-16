@@ -17,10 +17,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
     private int userId;
 
-    @Column(unique=true)
+    @Column(unique = true)
     private String nickname;
 
-    @Column(unique=true)
+    @Column(unique = true)
     private String socialId;
 
     private String role;

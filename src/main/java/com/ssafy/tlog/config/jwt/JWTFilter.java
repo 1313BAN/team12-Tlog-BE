@@ -22,9 +22,15 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // 로그인 경로는 토큰 검증 건너뛰기
+        if (request.getRequestURI().equals("/api/auth/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // request에 access 헤더 찾기
         String access = request.getHeader("access");
-        if(access == null && !access.startsWith("Bearer ")) {
+        if (access == null || !access.startsWith("Bearer ")) {
             // 토큰이 없는 경우 다음 필터로 요청을 전달
             filterChain.doFilter(request, response);
             return;
@@ -32,7 +38,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 토큰 추출 및 검증, token에 Bearer
         String accessToken = access.split(" ")[1];
-        if(jwtUtil.isExpired(accessToken)) {
+        if (jwtUtil.isExpired(accessToken)) {
             filterChain.doFilter(request, response);
             return;
         }

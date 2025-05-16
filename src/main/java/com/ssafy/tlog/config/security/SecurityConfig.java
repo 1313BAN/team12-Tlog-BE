@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JWTUtil jwtUtil;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
     public RoleHierarchy roleHierarchy() {
@@ -37,32 +38,25 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        // Spring Security가 내부적으로 생성한 AuthenticationManager를 반환하여 빈으로 등록
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public LoginFilter loginFilter(AuthenticationManager authenticationManager){
-        return new LoginFilter(authenticationManager, jwtUtil);
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter) throws Exception {
-        // CSRF 보호 비활성화
-        http.csrf(csrf -> csrf.disable());
-        // 폼 로그인 기능 비활성화
-        http.formLogin(form -> form.disable());
-        // HTTP 기본 인증 비활성화
-        http.httpBasic(basic -> basic.disable());
-        // 전체 URL 허용 -> 권한 부여 필요!!
-        http.authorizeHttpRequests((auth) -> auth.requestMatchers("/").permitAll());
-        // JWTFilter를 LoginFilter 전에 실행
-        http.addFilterBefore(new JWTFilter(jwtUtil),LoginFilter.class);
-        //  로그인 필터 추가
-        http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        // 세션 관리
-        http.sessionManagement((session)->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login").permitAll()  // 로그인 엔드포인트는 인증 없이 접근 가능
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAt(new LoginFilter(authenticationManager(http), jwtUtil), 
+                        UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
