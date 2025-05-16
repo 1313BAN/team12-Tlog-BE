@@ -26,14 +26,24 @@ public class JWTUtil {
                 .get("userId", Integer.class);
     }
 
-    // name 추출
-    public String getUsername(String token){
+    // social_id 추출
+    public String getSocialId(String token){
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("username", String.class);
+                .get("socialId", String.class);
+    }
+
+    // nickname 추출
+    public String getNickname(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("nickname", String.class);
     }
 
     // role 추출
@@ -69,12 +79,13 @@ public class JWTUtil {
 
 
     // 토큰 생성 -> true가 토큰이 만료
-    public String createJwt(String category, int userId, String username, String role, Long expiredMs){
+    public String createJwt(String category, int userId, String socialId, String nickname,String role, Long expiredMs){
         return Jwts.builder()
-                .claim("category",category)
-                .claim("userId",userId)
-                .claim("username",username)
-                .claim("role",role)
+                .claim("category", category)
+                .claim("userId", userId)
+                .claim("socialId", socialId)
+                .claim("nickname", nickname)
+                .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis()+expiredMs))
                 .signWith(secretKey)

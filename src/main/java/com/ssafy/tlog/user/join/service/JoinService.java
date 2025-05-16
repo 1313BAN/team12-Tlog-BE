@@ -28,9 +28,11 @@ public class JoinService {
         User user = new User();
         user.setNickname(joinDtoRequest.getNickname());
         user.setSocialId(passwordEncoder.encode(joinDtoRequest.getSocialId())); // socialId 암호화 후 저장
-        user.setRole("USER"); // USER로 기본 설정
+        user.setRole("USER");
 
         // userRepository를 통해 DB에 저장 -> JPA 기능
         userRepository.save(user);
+
+        // 바로 토큰 발급하고 로그인 시켜줘야지
     }
 }

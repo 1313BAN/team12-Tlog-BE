@@ -16,6 +16,16 @@ public class ApiResponse {
         return ResponseEntity.status(status).body(wrapper);
     }
 
+    // 상태코드 + 헤더 + 메시지
+    public static ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, HttpHeaders headers,String message) {
+        ResponseWrapper<Void> wrapper = new ResponseWrapper<>(
+                status.value(),
+                message,
+                null
+        );
+        return ResponseEntity.status(status).headers(headers).body(wrapper);
+    }
+
     // 상태코드 + 메시지 + 데이터
     public static <T>ResponseEntity<ResponseWrapper<T>> success(HttpStatus status, String message, T data) {
         ResponseWrapper<T> wrapper = new ResponseWrapper<>(

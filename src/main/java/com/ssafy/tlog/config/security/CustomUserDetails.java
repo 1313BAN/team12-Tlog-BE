@@ -12,6 +12,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class CustomUserDetails implements UserDetails {
     private final User user;
 
+    // User 객체를 반환하는 getter 생성
+    public User getUser(){
+        return user;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
@@ -27,13 +32,13 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return user.getUsername();
+    public String getUsername() { // social_id
+        return user.getSocialId();
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return null;
     }
 
     @Override

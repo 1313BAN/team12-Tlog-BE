@@ -17,8 +17,8 @@ public class CustomUserDetailService implements UserDetailsService {
     // username을 기반으로 UserDetails 객체 반환
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+    public UserDetails loadUserByUsername(String socialId) throws UsernameNotFoundException {
+        return userRepository.findBySocialId(socialId)
                 .map(CustomUserDetails::new)
                 .orElseThrow(()-> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
     }

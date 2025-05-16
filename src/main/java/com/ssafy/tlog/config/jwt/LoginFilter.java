@@ -31,11 +31,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // 로그인 시도 시 인증 로직 처리
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response){
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+        String socialId = request.getParameter("socialId");
         
         // username과 password를 검증하기 위한 토큰 -> principal, credentials, authorities
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, password, null);
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(socialId, null, null);
 
         // 토큰 검증을 위해 AuthenticationManager로 전달
         return authenticationManager.authenticate(auth);
@@ -45,25 +44,27 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
         int userId = customUserDetails.getUserId();
-        String username = customUserDetails.getUsername();
+        String socialId = customUserDetails.getUsername();
+        String nickname = customUserDetails.getUser().getNickname();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
+        String role = auth.getAuthority().replace("ROLE_", "");
 
-        String access = jwtUtil.createJwt("access",userId, username, role, accessExpiration);
-        String refresh = jwtUtil.createJwt("refreh",userId, username, role, refreshExpiration);
+        String access = jwtUtil.createJwt("access",userId, socialId, nickname, role, accessExpiration);
+        String refresh = jwtUtil.createJwt("refresh",userId, socialId, nickname, role, refreshExpiration);
 
         response.setHeader("access","Bearer "+access);
-        response.addCookie(createCookie("refresh","Bearer"+refresh));
+        response.addCookie(createCookie("refresh","Bearer "+refresh));
     }
 
     private Cookie createCookie(String key, String value){
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(7*24*60*60);
-        cookie.setPath("/api");
+        cookie.setPath("/api/auth");
         cookie.setHttpOnly(true);
         return cookie;
     }
