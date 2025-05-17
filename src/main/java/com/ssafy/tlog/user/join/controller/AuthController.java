@@ -10,8 +10,9 @@ import com.ssafy.tlog.user.join.dto.LoginRequest;
 import com.ssafy.tlog.user.join.service.JoinService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponseWrapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -37,10 +39,8 @@ public class AuthController {
     private long refreshExpiration = 604800000; // 7일
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {
-            System.out.println("로그인 시도: socialId = " + loginRequest.getSocialId());
-
             // 인증 처리
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), "")
@@ -52,7 +52,6 @@ public class AuthController {
             String nickname = customUserDetails.getUser().getNickname();
             String role = customUserDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
 
-            System.out.println("토큰 생성 중: userId=" + userId + ", nickname=" + nickname + ", role=" + role);
             String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
             String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
 
@@ -68,10 +67,8 @@ public class AuthController {
             refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
             response.addCookie(refreshCookie);
 
-            System.out.println("로그인 완료, 응답 반환");
             return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
         } catch (Exception e) {
-            System.out.println("로그인 실패: " + e.getClass().getName() + " - " + e.getMessage());
             e.printStackTrace();
             ErrorResponse error = new ErrorResponse(
                     401,
@@ -91,7 +88,7 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ResponseWrapper<Void>> join(@RequestBody JoinDtoRequest joinDtoRequest) {
+    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest) {
         joinService.join(joinDtoRequest);
         return ApiResponse.success(HttpStatus.CREATED, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
     }

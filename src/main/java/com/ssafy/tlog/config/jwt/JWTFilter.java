@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +29,11 @@ public class JWTFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // 로그인 경로는 토큰 검증 건너뛰기
-        if (request.getRequestURI().equals("/api/auth/login")) {
+        if (Set.of(
+                "/api/auth/login",
+                "/api/auth/signup",
+                "/api/auth/check-name"
+        ).contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }

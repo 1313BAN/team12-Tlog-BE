@@ -1,6 +1,5 @@
 package com.ssafy.tlog.exception.global;
 
-import com.ssafy.tlog.exception.custom.BadCredentialsException;
 import com.ssafy.tlog.exception.custom.InvalidDataException;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.NicknameConflictException;
@@ -27,17 +26,6 @@ public class GlobalExceptionHandler {
     // 401 UNAUTHORIZED
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
-        ErrorResponse error = new ErrorResponse(
-                401,
-                "UNAUTHORIZED",
-                e.getMessage()
-        );
-        return ResponseEntity.status(401).body(error);
-    }
-
-    // 401 UNAUTHORIZED
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
         ErrorResponse error = new ErrorResponse(
                 401,
                 "UNAUTHORIZED",
