@@ -3,7 +3,6 @@ package com.ssafy.tlog.user.join.controller;
 import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.common.response.ResponseWrapper;
 import com.ssafy.tlog.config.jwt.JWTUtil;
-import com.ssafy.tlog.config.security.CustomUserDetailService;
 import com.ssafy.tlog.config.security.CustomUserDetails;
 import com.ssafy.tlog.exception.global.ErrorResponse;
 import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
@@ -18,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,11 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final JoinService joinService;
-    private final CustomUserDetailService userDetailsService; // 추가
-
+    private final AuthenticationManager authenticationManager;
 
     private long accessExpiration = 3600000; // 1시간
     private long refreshExpiration = 604800000; // 7일
@@ -44,12 +40,11 @@ public class AuthController {
         try {
             System.out.println("로그인 시도: socialId = " + loginRequest.getSocialId());
 
-            // 직접 사용자 조회
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getSocialId());
-            System.out.println("사용자 찾음: " + userDetails.getUsername());
-
-            // 여기서 AuthenticationManager를 사용하지 않고 직접 사용자 정보로 토큰 생성
-            CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+            // 인증 처리
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), "")
+            );
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
             int userId = customUserDetails.getUserId();
             String socialId = customUserDetails.getUsername();

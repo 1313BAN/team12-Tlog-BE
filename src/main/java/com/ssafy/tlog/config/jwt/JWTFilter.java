@@ -31,8 +31,8 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // request에 access 헤더 찾기
-        String access = request.getHeader("access");
+        // request에 Authorization 헤더 찾기
+        String access = request.getHeader("Authorization");
         if (access == null || !access.startsWith("Bearer ")) {
             // 토큰이 없는 경우 다음 필터로 요청을 전달
             filterChain.doFilter(request, response);
