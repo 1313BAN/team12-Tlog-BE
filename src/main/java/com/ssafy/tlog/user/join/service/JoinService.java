@@ -13,8 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JoinService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
+    
     // 닉네임 중복 확인
     public void checkNickname(String nickname) {
         if(userRepository.existsByNickname(nickname)) {

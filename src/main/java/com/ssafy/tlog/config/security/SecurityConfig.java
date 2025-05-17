@@ -2,6 +2,7 @@ package com.ssafy.tlog.config.security;
 
 import com.ssafy.tlog.config.jwt.JWTFilter;
 import com.ssafy.tlog.config.jwt.JWTUtil;
+import com.ssafy.tlog.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +49,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
@@ -56,7 +57,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
                     .anyRequest().authenticated()
             )
-            .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex

@@ -2,11 +2,13 @@ package com.ssafy.tlog.config.jwt;
 
 import com.ssafy.tlog.config.security.CustomUserDetails;
 import com.ssafy.tlog.entity.User;
+import com.ssafy.tlog.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
     // HTTP 요청이 들어올 때마다 실행
     @Override
@@ -43,23 +46,18 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 토큰에서 사용자 정보 추출 및 인증 처리
+        // 토큰에서 사용자 ID 추출
         int userId = jwtUtil.getUserId(accessToken);
-        String nickname = jwtUtil.getNickname(accessToken);
-        String socialId = jwtUtil.getSocialId(accessToken);
-        String role = jwtUtil.getRole(accessToken);
 
-        User user = new User();
-        user.setUserId(userId);
-        user.setNickname(nickname);
-        user.setSocialId(socialId);
-        user.setRole(role);
-
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-
-        // SecurityContext에 Authentication 설정 -> 요청 처리가 완료되면 사라짐
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if(userOptional.isPresent()) {
+            User user = userOptional.get();
+            CustomUserDetails customUserDetails = new CustomUserDetails(user);
+            Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+        
+        // 다음 필터로 요청 전달
         filterChain.doFilter(request, response);
     }
 }
