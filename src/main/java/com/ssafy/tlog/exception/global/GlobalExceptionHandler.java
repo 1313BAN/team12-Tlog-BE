@@ -1,6 +1,8 @@
 package com.ssafy.tlog.exception.global;
 
 import com.ssafy.tlog.exception.custom.InvalidDataException;
+import com.ssafy.tlog.exception.custom.InvalidUserException;
+import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,9 +23,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(error);
     }
 
-    // 401 BAD_REQUEST
+    // 401 UNAUTHORIZED
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        ErrorResponse error = new ErrorResponse(
+                401,
+                "UNAUTHORIZED",
+                e.getMessage()
+        );
+        return ResponseEntity.status(401).body(error);
+    }
+
+    // 401 UNAUTHORIZED
+    @ExceptionHandler(InvalidUserException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUserException(InvalidUserException e) {
         ErrorResponse error = new ErrorResponse(
                 401,
                 "UNAUTHORIZED",
@@ -41,6 +54,17 @@ public class GlobalExceptionHandler {
                 e.getMessage()
         );
         return ResponseEntity.status(404).body(error);
+    }
+
+    // 409 Conflict
+    @ExceptionHandler(NicknameConflictException.class)
+    public ResponseEntity<ErrorResponse> handleNicknameConflictException(NicknameConflictException e) {
+        ErrorResponse error = new ErrorResponse(
+                409,
+                "Conflict",
+                e.getMessage()
+        );
+        return ResponseEntity.status(409).body(error);
     }
 
     // 500 INTERNAL_SERVER_ERROR

@@ -15,10 +15,13 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
-    private int id;
+    private int userId;
 
-    @Column(unique=true)
-    private String username;
-    private String password;
+    @Column(unique = true)
+    private String nickname;
+
+    @Column(unique = true)
+    private String socialId;
+
     private String role;
 }
