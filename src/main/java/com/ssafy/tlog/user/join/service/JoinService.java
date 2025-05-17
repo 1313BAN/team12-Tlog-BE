@@ -1,19 +1,17 @@
 package com.ssafy.tlog.user.join.service;
 
 import com.ssafy.tlog.entity.User;
-import com.ssafy.tlog.exception.custom.InvalidDataException;
 import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.repository.UserRepository;
 import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class JoinService {
     private final UserRepository userRepository;
-    
+
     // 닉네임 중복 확인
     public void checkNickname(String nickname) {
         if(userRepository.existsByNickname(nickname)) {
