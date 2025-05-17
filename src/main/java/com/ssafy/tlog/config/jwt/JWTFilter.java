@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,7 +33,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         // request에 Authorization 헤더 찾기
-        String access = request.getHeader("Authorization");
+        String access = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (access == null || !access.startsWith("Bearer ")) {
             // 토큰이 없는 경우 다음 필터로 요청을 전달
             filterChain.doFilter(request, response);
@@ -59,7 +60,7 @@ public class JWTFilter extends OncePerRequestFilter {
             Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
-        
+
         // 다음 필터로 요청 전달
         filterChain.doFilter(request, response);
     }

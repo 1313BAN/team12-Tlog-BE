@@ -10,6 +10,7 @@ import com.ssafy.tlog.user.join.dto.LoginRequest;
 import com.ssafy.tlog.user.join.service.JoinService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -57,14 +58,19 @@ public class AuthController {
 
             // 헤더에 토큰 추가 - Bearer 접두사 유지 (헤더에서는 공백 허용됨)
             HttpHeaders headers = new HttpHeaders();
-            headers.add("access", "Bearer " + accessToken);
-
+            headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
             // 쿠키에 refresh 토큰 추가 - Bearer 접두사 제거
             Cookie refreshCookie = new Cookie("refresh", refreshToken); // 공백 없이 토큰만 저장
             refreshCookie.setMaxAge(7*24*60*60);
             refreshCookie.setPath("/api/auth");
             refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true); // HTTPS에서만 전송
             response.addCookie(refreshCookie);
+
+            // SameSite 속성 설정
+            if (response instanceof HttpServletResponseWrapper) {
+                response.setHeader("Set-Cookie", response.getHeader("Set-Cookie") + "; SameSite=Strict");
+            }
 
             System.out.println("로그인 완료, 응답 반환");
             return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
