@@ -42,7 +42,10 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰 추출 및 검증, token에 Bearer
         String accessToken = access.split(" ")[1];
         if (jwtUtil.isExpired(accessToken)) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter()
+                    .write("{\"statusCode\":401,\"errorCode\":\"TOKEN_EXPIRED\",\"message\":\"Access Token이 만료되었습니다.\"}");
             return;
         }
 
