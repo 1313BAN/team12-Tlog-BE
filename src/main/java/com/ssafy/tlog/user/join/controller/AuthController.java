@@ -65,12 +65,8 @@ public class AuthController {
             refreshCookie.setPath("/api/auth");
             refreshCookie.setHttpOnly(true);
             refreshCookie.setSecure(true); // HTTPS에서만 전송
+            refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
             response.addCookie(refreshCookie);
-
-            // SameSite 속성 설정
-            if (response instanceof HttpServletResponseWrapper) {
-                response.setHeader("Set-Cookie", response.getHeader("Set-Cookie") + "; SameSite=Strict");
-            }
 
             System.out.println("로그인 완료, 응답 반환");
             return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);

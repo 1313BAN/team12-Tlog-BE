@@ -2,6 +2,7 @@ package com.ssafy.tlog.config.jwt;
 
 import com.ssafy.tlog.config.security.CustomUserDetails;
 import com.ssafy.tlog.entity.User;
+import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,11 +55,14 @@ public class JWTFilter extends OncePerRequestFilter {
         int userId = jwtUtil.getUserId(accessToken);
 
         Optional<User> userOptional = userRepository.findById(userId);
-        if(userOptional.isPresent()) {
+        if (userOptional.isPresent()) {
             User user = userOptional.get();
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
-            Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+            Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null,
+                    customUserDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
+        } else {
+            throw new InvalidUserException("유효하지 않은 사용자 정보입니다.");
         }
 
         // 다음 필터로 요청 전달
