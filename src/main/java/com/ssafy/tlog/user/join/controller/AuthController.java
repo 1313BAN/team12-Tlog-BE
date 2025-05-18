@@ -4,6 +4,7 @@ import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.common.response.ResponseWrapper;
 import com.ssafy.tlog.config.jwt.JWTUtil;
 import com.ssafy.tlog.config.security.CustomUserDetails;
+import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
 import com.ssafy.tlog.user.join.dto.LoginRequest;
 import com.ssafy.tlog.user.join.service.JoinService;
@@ -38,31 +39,38 @@ public class AuthController {
     private long refreshExpiration = 604800000; // 7일
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        // 인증 처리
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), ""));
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<ResponseWrapper<Void>> login(@Valid @RequestBody LoginRequest loginRequest,
+                                                       HttpServletResponse response) {
 
-        int userId = customUserDetails.getUserId();
-        String socialId = customUserDetails.getUsername();
-        String nickname = customUserDetails.getUser().getNickname();
-        String role = customUserDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        try {
+            // 인증 처리
 
-        String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
-        String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), ""));
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-        Cookie refreshCookie = new Cookie("refresh", refreshToken);
-        refreshCookie.setMaxAge(7 * 24 * 60 * 60);
-        refreshCookie.setPath("/api/auth");
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true); // HTTPS에서만 전송
-        refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
-        response.addCookie(refreshCookie);
+            int userId = customUserDetails.getUserId();
+            String socialId = customUserDetails.getUsername();
+            String nickname = customUserDetails.getUser().getNickname();
+            String role = customUserDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
 
-        return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
+            String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
+            String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+            Cookie refreshCookie = new Cookie("refresh", refreshToken);
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+            refreshCookie.setPath("/api/auth");
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true); // HTTPS에서만 전송
+            refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
+            response.addCookie(refreshCookie);
+
+            return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
+        } catch (Exception e) {
+            throw new InvalidUserException("로그인 실패");
+        }
     }
 
     // 닉네임 중복 확인

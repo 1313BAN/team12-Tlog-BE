@@ -3,6 +3,7 @@ package com.ssafy.tlog.config.jwt;
 import com.ssafy.tlog.config.security.CustomUserDetails;
 import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
+import com.ssafy.tlog.exception.custom.TokenExpiredException;
 import com.ssafy.tlog.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -49,11 +50,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰 추출 및 검증, token에 Bearer
         String accessToken = access.split(" ")[1];
         if (jwtUtil.isExpired(accessToken)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter()
-                    .write("{\"statusCode\":401,\"errorCode\":\"TOKEN_EXPIRED\",\"message\":\"Access Token이 만료되었습니다.\"}");
-            return;
+            throw new TokenExpiredException("Access Token이 만료되었습니다.");
         }
 
         // 토큰에서 사용자 ID 추출
