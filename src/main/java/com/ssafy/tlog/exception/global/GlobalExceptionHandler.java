@@ -5,7 +5,9 @@ import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.SocialIdConflictException;
 import com.ssafy.tlog.exception.custom.TokenExpiredException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +21,31 @@ public class GlobalExceptionHandler {
                 400,
                 "BAD_REQUEST",
                 "필수 파라미터가 누락되었습니다: " + e.getParameterName()
+        );
+        return ResponseEntity.status(400).body(error);
+    }
+
+    // 400 BAD_REQUEST
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        ErrorResponse error = new ErrorResponse(
+                400,
+                "BAD_REQUEST",
+                "요청 본문이 올바르지 않거나 누락되었습니다."
+        );
+        return ResponseEntity.status(400).body(error);
+    }
+
+    // 400 BAD_REQUEST
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldError() != null
+                ? e.getBindingResult().getFieldError().getDefaultMessage()
+                : "필수 입력값이 누락되었습니다.";
+        ErrorResponse error = new ErrorResponse(
+                400,
+                "BAD_REQUEST",
+                message
         );
         return ResponseEntity.status(400).body(error);
     }

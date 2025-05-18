@@ -41,10 +41,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ResponseWrapper<Void>> login(@Valid @RequestBody LoginRequest loginRequest,
                                                        HttpServletResponse response) {
-
         try {
             // 인증 처리
-
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), ""));
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -67,9 +65,9 @@ public class AuthController {
             refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
             response.addCookie(refreshCookie);
 
-            return ApiResponse.success(HttpStatus.OK, headers, "로그인 성공", null);
+            return ApiResponse.success(HttpStatus.OK, headers, "로그인이 성공적으로 처리되었습니다.", null);
         } catch (Exception e) {
-            throw new InvalidUserException("로그인 실패");
+            throw new InvalidUserException("존재하지 않는 사용자입니다.");
         }
     }
 
