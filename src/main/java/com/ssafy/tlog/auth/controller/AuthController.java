@@ -1,13 +1,16 @@
-package com.ssafy.tlog.user.join.controller;
+package com.ssafy.tlog.auth.controller;
 
+import com.ssafy.tlog.auth.dto.JoinDtoRequest;
+import com.ssafy.tlog.auth.dto.LoginRequest;
+import com.ssafy.tlog.auth.service.AuthService;
 import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.common.response.ResponseWrapper;
 import com.ssafy.tlog.config.security.CustomUserDetails;
 import com.ssafy.tlog.entity.User;
+import com.ssafy.tlog.exception.custom.InvalidTokenException;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
-import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
-import com.ssafy.tlog.user.join.dto.LoginRequest;
-import com.ssafy.tlog.user.join.service.AuthService;
+import com.ssafy.tlog.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest,
-                                                       HttpServletResponse response) {
+                                   HttpServletResponse response) {
         try {
             // 인증 처리
             Authentication authentication = authenticationManager.authenticate(
@@ -61,11 +65,37 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest, HttpServletResponse response) {
+    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest,
+                                                      HttpServletResponse response) {
         User user = authService.join(joinDtoRequest);
         HttpHeaders headers = authService.generateAuthTokens(user, response);
-        return ApiResponse.success(HttpStatus.CREATED, headers,"회원가입 및 로그인이 성공적으로 완료되었습니다.");
+        return ApiResponse.success(HttpStatus.CREATED, headers, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+        // 쿠키에서 refresh 토큰 추출
+        String refreshToken = authService.extractRefreshTokenFromCookies(request);
+        if (refreshToken == null) {
+            throw new InvalidTokenException("refresh 토큰이 쿠키에 없습니다.");
+        }
 
+        // 토큰 유효성 검증
+        if (!authService.validateRefreshToken(refreshToken)) {
+            throw new InvalidTokenException("유효하지 않은 refresh 토큰입니다.");
+        }
+
+        // 리프레시 토큰으로 사용자 ID 조회
+        int userId = authService.getUserIdByRefreshToken(refreshToken);
+        if (userId == -1) {
+            throw new InvalidTokenException("토큰에서 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        // 사용자 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidUserException("존재하지 않는 사용자입니다."));
+
+        HttpHeaders headers = authService.generateAuthTokens(user, response);
+        return ApiResponse.success(HttpStatus.OK, headers, "토큰이 성공적으로 갱신되었습니다.");
+    }
 }

@@ -1,4 +1,4 @@
-package com.ssafy.tlog.user.join.dto;
+package com.ssafy.tlog.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

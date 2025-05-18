@@ -1,5 +1,6 @@
-package com.ssafy.tlog.user.join.service;
+package com.ssafy.tlog.auth.service;
 
+import com.ssafy.tlog.auth.dto.JoinDtoRequest;
 import com.ssafy.tlog.config.jwt.JWTUtil;
 import com.ssafy.tlog.entity.Refresh;
 import com.ssafy.tlog.entity.User;
@@ -7,12 +8,13 @@ import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.SocialIdConflictException;
 import com.ssafy.tlog.repository.RefreshRepository;
 import com.ssafy.tlog.repository.UserRepository;
-import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class AuthService {
 
     // 닉네임 중복 확인
     public void checkNickname(String nickname) {
-        if(userRepository.existsByNickname(nickname)) {
+        if (userRepository.existsByNickname(nickname)) {
             throw new NicknameConflictException("이미 사용 중인 닉네임입니다.");
         }
     }
@@ -100,5 +102,35 @@ public class AuthService {
 
         // 저장
         refreshRepository.save(refreshEntity);
+    }
+
+    public String extractRefreshTokenFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        Optional<Refresh> refreshOpt = refreshRepository.findByRefresh(refreshToken);
+        if (refreshOpt.isEmpty()) {
+            return false;
+        }
+
+        // 토큰 만료 시간 확인
+        Refresh refresh = refreshOpt.get();
+        return LocalDateTime.now().isBefore(refresh.getExpiryDate());
+    }
+
+    // 리프레시 토큰으로부터 사용자 ID를 조회
+    public int getUserIdByRefreshToken(String refreshToken) {
+        return refreshRepository.findByRefresh(refreshToken)
+                .map(Refresh::getUserId)
+                .orElse(-1);
     }
 }

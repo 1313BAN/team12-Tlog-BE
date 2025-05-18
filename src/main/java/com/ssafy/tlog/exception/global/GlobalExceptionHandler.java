@@ -1,5 +1,6 @@
 package com.ssafy.tlog.exception.global;
 
+import com.ssafy.tlog.exception.custom.InvalidTokenException;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.SocialIdConflictException;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     // 400 BAD_REQUEST
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException e) {
         ErrorResponse error = new ErrorResponse(
                 400,
                 "BAD_REQUEST",
@@ -51,30 +54,9 @@ public class GlobalExceptionHandler {
     }
 
     // 401 UNAUTHORIZED
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ErrorResponse> handleTokenExpiredException(TokenExpiredException e) {
-        ErrorResponse error = new ErrorResponse(
-                401,
-                "UNAUTHORIZED",
-                e.getMessage()
-        );
-        return ResponseEntity.status(401).body(error);
-    }
-
-    // 401 UNAUTHORIZED
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e) {
-        ErrorResponse error = new ErrorResponse(
-                401,
-                "UNAUTHORIZED",
-                e.getMessage()
-        );
-        return ResponseEntity.status(401).body(error);
-    }
-
-    // 401 UNAUTHORIZED
-    @ExceptionHandler(InvalidUserException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidUserException(InvalidUserException e) {
+    @ExceptionHandler({UsernameNotFoundException.class, InvalidUserException.class, TokenExpiredException.class,
+            InvalidTokenException.class})
+    public ResponseEntity<ErrorResponse> handleUNAUTHORIZED(Exception e) {
         ErrorResponse error = new ErrorResponse(
                 401,
                 "UNAUTHORIZED",
@@ -84,19 +66,8 @@ public class GlobalExceptionHandler {
     }
 
     // 409 Conflict
-    @ExceptionHandler(NicknameConflictException.class)
-    public ResponseEntity<ErrorResponse> handleNicknameConflictException(NicknameConflictException e) {
-        ErrorResponse error = new ErrorResponse(
-                409,
-                "Conflict",
-                e.getMessage()
-        );
-        return ResponseEntity.status(409).body(error);
-    }
-
-    // 409 Conflict
-    @ExceptionHandler(SocialIdConflictException.class)
-    public ResponseEntity<ErrorResponse> handleSocialIdConflictException(SocialIdConflictException e) {
+    @ExceptionHandler({NicknameConflictException.class, SocialIdConflictException.class})
+    public ResponseEntity<ErrorResponse> handleConflict(Exception e) {
         ErrorResponse error = new ErrorResponse(
                 409,
                 "Conflict",
