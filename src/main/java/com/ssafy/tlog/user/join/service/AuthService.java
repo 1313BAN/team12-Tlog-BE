@@ -1,22 +1,29 @@
 package com.ssafy.tlog.user.join.service;
 
 import com.ssafy.tlog.config.jwt.JWTUtil;
+import com.ssafy.tlog.entity.Refresh;
 import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.NicknameConflictException;
 import com.ssafy.tlog.exception.custom.SocialIdConflictException;
+import com.ssafy.tlog.repository.RefreshRepository;
 import com.ssafy.tlog.repository.UserRepository;
 import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
+    private final RefreshRepository refreshRepository;
 
     private long accessExpiration = 3600000; // 1시간
     private long refreshExpiration = 604800000; // 7일
@@ -47,6 +54,7 @@ public class AuthService {
     }
 
     // 토큰 생성 및 쿠키 설정을 위한 공통 메서드
+    @Transactional
     public HttpHeaders generateAuthTokens(User user, HttpServletResponse response) {
         int userId = user.getUserId();
         String socialId = user.getSocialId();
@@ -55,6 +63,9 @@ public class AuthService {
 
         String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
         String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
+
+        // DB에 리프레시 토큰 저장
+        saveRefreshToken(userId, refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
@@ -68,5 +79,26 @@ public class AuthService {
         response.addCookie(refreshCookie);
 
         return headers;
+    }
+
+    // 리프레시 토큰을 DB에 저장하는 메서드
+    private void saveRefreshToken(int userId, String refreshToken) {
+        // 밀리초(refreshExpiration)를 LocalDateTime으로 변환
+        LocalDateTime expiryDate = LocalDateTime.ofInstant(
+                Instant.now().plusMillis(refreshExpiration),
+                ZoneId.systemDefault()
+        );
+
+        // 기존 토큰이 있는지 확인하고, 있으면 업데이트, 없으면 새로 생성
+        Refresh refreshEntity = refreshRepository.findById(userId)
+                .orElse(new Refresh());
+
+        // 리프레시 토큰 정보 설정
+        refreshEntity.setUserId(userId);
+        refreshEntity.setRefresh(refreshToken);
+        refreshEntity.setExpiryDate(expiryDate);
+
+        // 저장
+        refreshRepository.save(refreshEntity);
     }
 }
