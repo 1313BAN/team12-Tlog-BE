@@ -124,6 +124,10 @@ public class AuthService {
             return false;
         }
 
+        if (!jwtUtil.validateToken(refreshToken)) {
+            return false;
+        }
+
         // 토큰 만료 시간 확인
         Refresh refresh = refreshOpt.get();
         return LocalDateTime.now().isBefore(refresh.getExpiryDate());
