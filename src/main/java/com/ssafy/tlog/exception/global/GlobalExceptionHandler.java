@@ -6,11 +6,23 @@ import com.ssafy.tlog.exception.custom.SocialIdConflictException;
 import com.ssafy.tlog.exception.custom.TokenExpiredException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    // 400 BAD_REQUEST
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        ErrorResponse error = new ErrorResponse(
+                400,
+                "BAD_REQUEST",
+                "필수 파라미터가 누락되었습니다: " + e.getParameterName()
+        );
+        return ResponseEntity.status(400).body(error);
+    }
+
     // 401 UNAUTHORIZED
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<ErrorResponse> handleTokenExpiredException(TokenExpiredException e) {
