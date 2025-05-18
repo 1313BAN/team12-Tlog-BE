@@ -77,7 +77,6 @@ public class AuthController {
     public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 refresh 토큰 추출
         String refreshToken = authService.extractRefreshTokenFromCookies(request);
-        log.info("refresh token: {}", refreshToken);
         if (refreshToken == null) {
             throw new InvalidTokenException("refresh 토큰이 쿠키에 없습니다.");
         }
