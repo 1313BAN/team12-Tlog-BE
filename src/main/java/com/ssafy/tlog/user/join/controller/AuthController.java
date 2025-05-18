@@ -2,13 +2,12 @@ package com.ssafy.tlog.user.join.controller;
 
 import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.common.response.ResponseWrapper;
-import com.ssafy.tlog.config.jwt.JWTUtil;
 import com.ssafy.tlog.config.security.CustomUserDetails;
+import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.user.join.dto.JoinDtoRequest;
 import com.ssafy.tlog.user.join.dto.LoginRequest;
-import com.ssafy.tlog.user.join.service.JoinService;
-import jakarta.servlet.http.Cookie;
+import com.ssafy.tlog.user.join.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,39 +30,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final JWTUtil jwtUtil;
-    private final JoinService joinService;
+    private final AuthService authService;
     private final AuthenticationManager authenticationManager;
 
-    private long accessExpiration = 3600000; // 1시간
-    private long refreshExpiration = 604800000; // 7일
-
     @PostMapping("/login")
-    public ResponseEntity<ResponseWrapper<Void>> login(@Valid @RequestBody LoginRequest loginRequest,
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest,
                                                        HttpServletResponse response) {
         try {
             // 인증 처리
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getSocialId(), ""));
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = customUserDetails.getUser();
 
-            int userId = customUserDetails.getUserId();
-            String socialId = customUserDetails.getUsername();
-            String nickname = customUserDetails.getUser().getNickname();
-            String role = customUserDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
-
-            String accessToken = jwtUtil.createJwt("access", userId, socialId, nickname, role, accessExpiration);
-            String refreshToken = jwtUtil.createJwt("refresh", userId, socialId, nickname, role, refreshExpiration);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-            Cookie refreshCookie = new Cookie("refresh", refreshToken);
-            refreshCookie.setMaxAge(7 * 24 * 60 * 60);
-            refreshCookie.setPath("/api/auth");
-            refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true); // HTTPS에서만 전송
-            refreshCookie.setAttribute("SameSite", "Strict"); // CSRF 방지
-            response.addCookie(refreshCookie);
+            // 토큰 생성 및 쿠키 설정
+            HttpHeaders headers = authService.generateAuthTokens(user, response);
 
             return ApiResponse.success(HttpStatus.OK, headers, "로그인이 성공적으로 처리되었습니다.", null);
         } catch (Exception e) {
@@ -74,14 +55,17 @@ public class AuthController {
     // 닉네임 중복 확인
     @GetMapping("/check-name")
     public ResponseEntity<ResponseWrapper<Void>> checkNickname(@RequestParam String nickname) {
-        joinService.checkNickname(nickname);
+        authService.checkNickname(nickname);
         return ApiResponse.success(HttpStatus.OK, "사용 가능한 닉네임 입니다.");
     }
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest) {
-        joinService.join(joinDtoRequest);
-        return ApiResponse.success(HttpStatus.CREATED, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
+    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest, HttpServletResponse response) {
+        User user = authService.join(joinDtoRequest);
+        HttpHeaders headers = authService.generateAuthTokens(user, response);
+        return ApiResponse.success(HttpStatus.CREATED, headers,"회원가입 및 로그인이 성공적으로 완료되었습니다.");
     }
+
+
 }

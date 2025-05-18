@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public class ApiResponse {
 
     // 상태코드 + 메시지
-    public static ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, String message) {
+    public static <T> ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, String message) {
         ResponseWrapper<Void> wrapper = new ResponseWrapper<>(
                 status.value(),
                 message,
@@ -17,7 +17,7 @@ public class ApiResponse {
     }
 
     // 상태코드 + 헤더 + 메시지
-    public static ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, HttpHeaders headers,String message) {
+    public static <T> ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, HttpHeaders headers,String message) {
         ResponseWrapper<Void> wrapper = new ResponseWrapper<>(
                 status.value(),
                 message,
@@ -27,7 +27,7 @@ public class ApiResponse {
     }
 
     // 상태코드 + 메시지 + 데이터
-    public static <T>ResponseEntity<ResponseWrapper<T>> success(HttpStatus status, String message, T data) {
+    public static <T> ResponseEntity<ResponseWrapper<T>> success(HttpStatus status, String message, T data) {
         ResponseWrapper<T> wrapper = new ResponseWrapper<>(
                 status.value(),
                 message,
@@ -37,7 +37,7 @@ public class ApiResponse {
     }
 
     // 상태코드 + 헤더 + 메시지 + 데이터
-    public static <T>ResponseEntity<ResponseWrapper<T>> success(HttpStatus status, HttpHeaders headers,String message, T data) {
+    public static <T> ResponseEntity<ResponseWrapper<T>> success(HttpStatus status, HttpHeaders headers,String message, T data) {
         ResponseWrapper<T> wrapper = new ResponseWrapper<>(
                 status.value(),
                 message,
