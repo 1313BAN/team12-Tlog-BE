@@ -104,6 +104,7 @@ public class AuthService {
         refreshRepository.save(refreshEntity);
     }
 
+    // 쿠키에서 refresh 토큰 추출
     public String extractRefreshTokenFromCookies(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -117,6 +118,7 @@ public class AuthService {
     }
 
     public boolean validateRefreshToken(String refreshToken) {
+        // refresh가 DB에 존재하는지 확인
         Optional<Refresh> refreshOpt = refreshRepository.findByRefresh(refreshToken);
         if (refreshOpt.isEmpty()) {
             return false;
@@ -127,7 +129,7 @@ public class AuthService {
         return LocalDateTime.now().isBefore(refresh.getExpiryDate());
     }
 
-    // 리프레시 토큰으로부터 사용자 ID를 조회
+    // refresh 토큰으로부터 사용자 ID를 조회
     public int getUserIdByRefreshToken(String refreshToken) {
         return refreshRepository.findByRefresh(refreshToken)
                 .map(Refresh::getUserId)

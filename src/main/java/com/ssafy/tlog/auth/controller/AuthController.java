@@ -38,8 +38,7 @@ public class AuthController {
     private final UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest,
-                                   HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {
             // 인증 처리
             Authentication authentication = authenticationManager.authenticate(
@@ -76,6 +75,7 @@ public class AuthController {
     public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 refresh 토큰 추출
         String refreshToken = authService.extractRefreshTokenFromCookies(request);
+        log.info("refresh token: {}", refreshToken);
         if (refreshToken == null) {
             throw new InvalidTokenException("refresh 토큰이 쿠키에 없습니다.");
         }
