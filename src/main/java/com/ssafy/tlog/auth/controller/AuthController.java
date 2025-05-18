@@ -10,6 +10,7 @@ import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.InvalidTokenException;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -71,6 +72,7 @@ public class AuthController {
         return ApiResponse.success(HttpStatus.CREATED, headers, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
     }
 
+    // access 토큰 재발급
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 refresh 토큰 추출
@@ -97,5 +99,25 @@ public class AuthController {
 
         HttpHeaders headers = authService.generateAuthTokens(user, response);
         return ApiResponse.success(HttpStatus.OK, headers, "토큰이 성공적으로 갱신되었습니다.");
+    }
+
+    // logout
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseWrapper<Void>> logout(HttpServletResponse response, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            // DB에서 리프레시 토큰 삭제
+            authService.logout(userDetails.getUserId());
+        }
+
+        // 쿠키 삭제
+        Cookie refreshCookie = new Cookie("refresh", null);
+        refreshCookie.setMaxAge(0); // 즉시 만료
+        refreshCookie.setPath("/api/auth");
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(true);
+        response.addCookie(refreshCookie);
+
+        return ApiResponse.success(HttpStatus.OK, "로그아웃 되었습니다.");
     }
 }

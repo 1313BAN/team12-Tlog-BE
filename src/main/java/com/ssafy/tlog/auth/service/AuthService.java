@@ -135,4 +135,10 @@ public class AuthService {
                 .map(Refresh::getUserId)
                 .orElse(-1);
     }
+
+    // logout - 리프레시 토큰 삭제
+    @Transactional
+    public void logout(int userId) {
+        refreshRepository.deleteById(userId);
+    }
 }
