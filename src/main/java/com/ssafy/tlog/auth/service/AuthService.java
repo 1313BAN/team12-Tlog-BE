@@ -128,6 +128,11 @@ public class AuthService {
             return false;
         }
 
+        // 토큰 유형 확인
+        if (!"refresh".equals(jwtUtil.getCategory(refreshToken))) {
+            return false;
+        }
+
         // 토큰 만료 시간 확인
         Refresh refresh = refreshOpt.get();
         return LocalDateTime.now().isBefore(refresh.getExpiryDate());
