@@ -1,6 +1,5 @@
 package com.ssafy.tlog.entity;
 
-import jakarta.persistence.Id;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InvitedTripId implements Serializable {
+public class TripParticipantId implements Serializable {
     private int tripId;
     private int userId;
 }

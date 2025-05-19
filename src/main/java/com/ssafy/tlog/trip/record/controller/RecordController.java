@@ -2,7 +2,7 @@ package com.ssafy.tlog.trip.record.controller;
 
 import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.config.security.CustomUserDetails;
-import com.ssafy.tlog.trip.record.dto.TripListResponseDto;
+import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.service.RecordService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecordController {
     private final RecordService recordService;
 
-    @GetMapping("/record")
-    public ResponseEntity<?> getTripRecordList(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        // List<TripListResponseDto> tripRedcordList = recordService.getTripRecordListByUser(userDetails.getUserId());
-        return ApiResponse.success(HttpStatus.OK, "여행 기록 리스트 조회 성공");
-    }
+//    @GetMapping("/record")
+//    public ResponseEntity<?> getTripRecordList(@AuthenticationPrincipal CustomUserDetails userDetails) {
+//        List<TripRecordListResponseDto> tripRedcordList = recordService.getTripRecordListByUser(userDetails.getUserId());
+//        return ApiResponse.success(HttpStatus.OK, "여행 기록 리스트 조회에 성공했습니다.", tripRedcordList);
+//    }
 }

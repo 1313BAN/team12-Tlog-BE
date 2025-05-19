@@ -9,8 +9,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@IdClass(InvitedTripId.class)
-public class InvitedTrip {
+@IdClass(TripParticipantId.class)
+public class TripParticipant  {
     @Id
     private int tripId;
 
