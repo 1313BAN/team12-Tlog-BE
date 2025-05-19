@@ -13,7 +13,6 @@ import org.springframework.cglib.core.Local;
 @Setter
 @Entity
 public class Trip {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int tripId;

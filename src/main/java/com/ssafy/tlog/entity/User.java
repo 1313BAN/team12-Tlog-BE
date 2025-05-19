@@ -12,7 +12,6 @@ import lombok.Setter;
 @Setter
 @Entity
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
     private int userId;
