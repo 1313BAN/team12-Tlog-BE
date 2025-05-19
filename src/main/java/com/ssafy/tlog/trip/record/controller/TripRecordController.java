@@ -1,22 +1,14 @@
 package com.ssafy.tlog.trip.record.controller;
 
-import com.ssafy.tlog.common.response.ApiResponse;
-import com.ssafy.tlog.config.security.CustomUserDetails;
-import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.service.RecordService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/trips")
-public class RecordController {
+public class TripRecordController {
     private final RecordService recordService;
 
 //    @GetMapping("/record")
