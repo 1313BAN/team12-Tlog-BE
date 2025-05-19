@@ -58,7 +58,7 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex
                     .authenticationEntryPoint((request, response, authException) -> {
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
+                        response.setContentType("application/json; charset=UTF-8");
                         response.getWriter().write("{\"statusCode\":401,\"errorCode\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
                     })
             );
