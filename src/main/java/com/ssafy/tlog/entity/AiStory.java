@@ -17,5 +17,5 @@ public class AiStory {
 
     private int tripId;
     private int userId;
-    private String record;
+    private String content;
 }

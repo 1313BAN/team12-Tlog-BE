@@ -19,7 +19,7 @@ public class Plan {
     private int tripId;
     private int placeId;
     private int day;
-    private int order;
+    private int planOrder ;
     private double latitude;
     private double longitude;
     private String memo;
