@@ -13,7 +13,7 @@ import lombok.Setter;
 public class AiStory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int AiStoryId;
+    private int aiStoryId;
 
     private int tripId;
     private int userId;
