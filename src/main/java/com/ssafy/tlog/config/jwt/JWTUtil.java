@@ -1,5 +1,7 @@
 package com.ssafy.tlog.config.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -90,5 +92,19 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis()+expiredMs))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            // JWT 파싱 및 검증
+            Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token);
+            // 토큰이 만료되었는지 확인
+            return !isExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

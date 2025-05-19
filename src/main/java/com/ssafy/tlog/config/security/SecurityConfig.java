@@ -38,11 +38,6 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-//    @Bean
-//    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-//        return authenticationConfiguration.getAuthenticationManager();
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -54,7 +49,7 @@ public class SecurityConfig {
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
+                    .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name","/api/auth/refresh").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
                     .anyRequest().authenticated()
             )
             .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)

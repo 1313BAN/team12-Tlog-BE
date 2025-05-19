@@ -18,8 +18,6 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String socialId) throws UsernameNotFoundException {
-        System.out.println("CustomUserDetailService.loadUserByUsername 호출: socialId = " + socialId);
-
         return userRepository.findBySocialId(socialId)
                 .map(CustomUserDetails::new)
                 .orElseThrow(()-> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다."));
