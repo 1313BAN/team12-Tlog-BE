@@ -3,6 +3,7 @@ package com.ssafy.tlog.exception.global;
 import com.ssafy.tlog.exception.custom.InvalidTokenException;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.NicknameConflictException;
+import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import com.ssafy.tlog.exception.custom.SocialIdConflictException;
 import com.ssafy.tlog.exception.custom.TokenExpiredException;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class GlobalExceptionHandler {
     // 401 UNAUTHORIZED
     @ExceptionHandler({UsernameNotFoundException.class, InvalidUserException.class, TokenExpiredException.class,
             InvalidTokenException.class})
-    public ResponseEntity<ErrorResponse> handleUNAUTHORIZED(Exception e) {
+    public ResponseEntity<ErrorResponse> handleUnauthorized(Exception e) {
         ErrorResponse error = new ErrorResponse(
                 401,
                 "UNAUTHORIZED",
@@ -65,12 +66,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(401).body(error);
     }
 
-    // 409 Conflict
+    // 404 NOT_FOUND
+    @ExceptionHandler({ResourceNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFound(Exception e) {
+        ErrorResponse error = new ErrorResponse(
+                404,
+                "NOT_FOUND",
+                e.getMessage()
+        );
+        return ResponseEntity.status(404).body(error);
+    }
+
+    // 409 CONFLICT
     @ExceptionHandler({NicknameConflictException.class, SocialIdConflictException.class})
     public ResponseEntity<ErrorResponse> handleConflict(Exception e) {
         ErrorResponse error = new ErrorResponse(
                 409,
-                "Conflict",
+                "CONFLICT",
                 e.getMessage()
         );
         return ResponseEntity.status(409).body(error);
