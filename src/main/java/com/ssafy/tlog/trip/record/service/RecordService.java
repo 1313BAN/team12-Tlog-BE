@@ -37,10 +37,10 @@ public class RecordService {
         // 각 여행별 참여자 목록 조회(현재 사용자 제외)
         Map<Integer, List<Integer>> tripParticipantsMap = getTripParticipantsMap(tripIds, userId);
 
-        // 각 여행 별 계획 저장 여부 확인
+        // 각 여행 별 기록 저장 여부 확인
         Map<Integer, Boolean> hasStep1Map = getHasStep1Map(tripIds, userId);
 
-        // 각 여행별 기록 저장 여부 확인
+        // 각 여행별 AI 생성 저장 여부 확인
         Map<Integer, Boolean> hasStep2Map = getHasStep2Map(tripIds, userId);
 
         // 응답 생성
@@ -77,7 +77,7 @@ public class RecordService {
     private Map<Integer, Boolean> getHasStep1Map(List<Integer> tripIds, int userId) {
         Map<Integer, Boolean> hasStep1Map = new HashMap<>();
 
-        // 각 여행 ID에 대해 계획(Step1) 존재 여부 확인
+        // 각 여행 ID에 대해 기록(Step1) 존재 여부 확인
         for (Integer tripId : tripIds) {
             boolean hasStep1 = tripRecordRepository.existsByTripIdAndUserId(tripId, userId);
             hasStep1Map.put(tripId, hasStep1);
@@ -89,7 +89,7 @@ public class RecordService {
     private Map<Integer, Boolean> getHasStep2Map(List<Integer> tripIds, int userId) {
         Map<Integer, Boolean> hasStep2Map = new HashMap<>();
 
-        // 각 여행 ID에 대해 계획(Step1) 존재 여부 확인
+        // 각 여행 ID에 대해 AI 기록(Step2) 존재 여부 확인
         for (Integer tripId : tripIds) {
             boolean hasStep1 = aiStoryRepository.existsByTripIdAndUserId(tripId, userId);
             hasStep2Map.put(tripId, hasStep1);
