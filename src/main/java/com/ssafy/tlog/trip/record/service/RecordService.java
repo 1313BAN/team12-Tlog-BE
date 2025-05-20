@@ -67,8 +67,8 @@ public class RecordService {
         // 3. 여행 관련 정보 조회
         List<Integer> tripIds = List.of(tripId);
         Map<Integer, List<Integer>> participantsMap = getTripParticipantsMap(tripIds, userId);
-        boolean hasStep1 = getHasStep1Map(tripIds, userId).getOrDefault(tripId, false);
-        boolean hasStep2 = getHasStep2Map(tripIds, userId).getOrDefault(tripId, false);
+        boolean hasStep1 = tripRecordRepository.existsByTripIdAndUserId(tripId, userId);
+        boolean hasStep2 = aiStoryRepository.existsByTripIdAndUserId(tripId, userId);
 
         // 4. 여행 기록 조회 - 없으면 빈 리스트 반환
         List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdOrderByDay(tripId);
