@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,5 +19,6 @@ public class TripRecord {
     private int tripId;
     private int userId;
     private int day;
+    private LocalDateTime date;
     private String memo;
 }

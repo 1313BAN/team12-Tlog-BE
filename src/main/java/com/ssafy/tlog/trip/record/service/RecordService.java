@@ -104,7 +104,6 @@ public class RecordService {
                 .map(trip -> {
                     // Trip 엔티티를 TripDto로 변환
                     TripDto tripDto = TripDto.builder()
-                            .tripId(trip.getTripId())
                             .title(trip.getTitle())
                             .createdAt(trip.getCreateAt())
                             .startDate(trip.getStartDate())
