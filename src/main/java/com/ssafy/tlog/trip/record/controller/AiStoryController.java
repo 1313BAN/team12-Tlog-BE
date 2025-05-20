@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,9 +25,7 @@ public class AiStoryController {
     @PostMapping("/{tripId}/ai-story")
     public ResponseEntity<ResponseWrapper<AiStoryResponseDto>> generateAiStory(
             @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable int tripId) {
-
         AiStoryResponseDto aiStoryResponseDto = aiStoryService.generateAiStory(userDetails.getUserId(), tripId);
-
         return ApiResponse.success(HttpStatus.OK, "AI 스토리가 성공적으로 생성되었습니다.", aiStoryResponseDto
         );
     }

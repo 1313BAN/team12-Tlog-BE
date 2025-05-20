@@ -11,17 +11,17 @@ import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
 import com.ssafy.tlog.trip.record.dto.AiStoryResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
-
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,28 +94,32 @@ public class AiStoryService {
         promptData.put("places", String.join(", ", places));
 
         String templateString = """
-                당신은 여행 기록을 바탕으로 블로그 형식의 여행 이야기를 작성하는 전문 작가입니다.
-                다음 여행 기록을 바탕으로 개인적이고 감성적인 여행 블로그 글을 작성해주세요.
-
+                당신은 여행 기록을 바탕으로 블로그 형식의 여행 정보를 작성하는 전문 작가입니다.
+                다음 여행 기록을 바탕으로 생생하고 실용적인 여행 블로그 글을 작성해주세요.
+                
                 ## 여행 기본 정보
                 - 여행 제목: {{title}}
                 - 여행 기간: {{startDate}} ~ {{endDate}} (총 {{tripDuration}}일)
-
+                
                 ## 일자별 기록
                 {{dayByDayContent}}
-
+                
                 ## 방문한 주요 장소
                 {{places}}
-
+                
                 다음 지침을 따라주세요:
-                1. 1인칭 시점으로 작성하되, 마치 친구에게 여행 이야기를 들려주는 듯한 편안한 어투로 작성해주세요.
-                2. 단순 일정 나열이 아닌, 여행 중 느낀 감정, 인상적인 장면, 음식, 만남 등을 생생하게 표현해주세요.
-                3. 여행지의 분위기, 날씨, 풍경 등을 묘사하여 독자가 간접 체험할 수 있도록 해주세요.
-                4. 방문한 장소의 특징이나 역사적 배경을 간략히 언급하되, 너무 교과서적인 설명은 피해주세요.
-                5. 글의 분량은 약 600~800자 정도로, 제목은 붙이지 말고 본문만 작성해주세요.
-                6. 글은 한국어로 작성해주세요.
-                7. 마크다운 형식으로 작성하되, 제목과 문단을 적절히 나누어 가독성을 높여주세요.
-                8. 여행 계획에 없던 내용은 만들어내지 말고, 주어진 정보만을 기반으로 작성해주세요.
+                1. 명확한 제목과 서브제목을 사용하여 구조화된 마크다운 형식으로 작성하세요.
+                2. 1인칭 시점으로 작성하되, 마치 친구에게 여행 이야기를 들려주는 듯한 편안한 어투로 작성해주세요.
+                3. 각 날짜별로 방문한 장소, 활동, 경험한 것을 구체적으로 나열하되, 단순 일정 나열이 아닌 여행 중 느낀 감정, 인상적인 장면, 음식, 만남 등을 생생하게 표현해주세요.
+                4. 여행지의 분위기, 날씨, 풍경 등을 묘사하여 독자가 간접 체험할 수 있도록 해주세요.
+                5. 방문한 장소의 특징이나 역사적 배경을 간략히 언급하되, 너무 교과서적인 설명은 피해주세요.
+                6. 메모에 있는 내용을 충실히 반영하고, 없는 내용은 만들어내지 마세요.
+                7. 장소별 특징, 추천 포인트, 방문 팁 등 실질적인 정보를 포함해주세요.
+                8. 마크다운 문법(# 제목, ## 부제목, **굵게**, *기울임*, - 목록 등)을 올바르게 사용하고, 이스케이프 문자(\\n) 대신 실제 줄바꿈을 사용하세요.
+                9. 실제 노션이나 다른 마크다운 편집기에 바로 복사-붙여넣기 했을 때 정상적으로 표시되도록 순수 마크다운 텍스트로 작성하세요.
+                10. 각 날짜는 ## Day 1, ## Day 2 형식으로 명확하게 구분해주세요.
+                11. 전체 글의 분량은 약 1000자 이내로 간결하되 생생하게 작성해주세요.
+                12. 여행 계획에 없던 내용은 만들어내지 말고, 주어진 정보만을 기반으로 작성해주세요.
                 """;
 
         PromptTemplate promptTemplate = new PromptTemplate(templateString);
