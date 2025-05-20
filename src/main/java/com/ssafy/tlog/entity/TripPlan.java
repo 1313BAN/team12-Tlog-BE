@@ -10,13 +10,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class Record {
+public class TripPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int recordId;
+    private int planId;
 
+    private int cityId;
     private int tripId;
-    private int userId;
+    private int placeId;
     private int day;
+    private int planOrder ;
+    private double latitude;
+    private double longitude;
     private String memo;
+
 }
