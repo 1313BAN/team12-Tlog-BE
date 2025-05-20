@@ -50,7 +50,7 @@ public class AuthController {
             // 토큰 생성 및 쿠키 설정
             HttpHeaders headers = authService.generateAuthTokens(user, response);
 
-            return ApiResponse.success(HttpStatus.OK, headers, "로그인이 성공적으로 처리되었습니다.", null);
+            return ApiResponse.success(HttpStatus.OK, headers, "로그인이 성공적으로 처리되었습니다.", user);
         } catch (Exception e) {
             throw new InvalidUserException("존재하지 않는 사용자입니다.");
         }
@@ -65,11 +65,11 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ResponseWrapper<Void>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest,
+    public ResponseEntity<ResponseWrapper<User>> join(@Valid @RequestBody JoinDtoRequest joinDtoRequest,
                                                       HttpServletResponse response) {
         User user = authService.join(joinDtoRequest);
         HttpHeaders headers = authService.generateAuthTokens(user, response);
-        return ApiResponse.success(HttpStatus.CREATED, headers, "회원가입 및 로그인이 성공적으로 완료되었습니다.");
+        return ApiResponse.success(HttpStatus.CREATED, headers, "회원가입 및 로그인이 성공적으로 완료되었습니다.", user);
     }
 
     // access 토큰 재발급
