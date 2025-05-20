@@ -19,6 +19,5 @@ public class TripRecord {
     private int tripId;
     private int userId;
     private int day;
-    private LocalDateTime date;
     private String memo;
 }
