@@ -3,13 +3,16 @@ package com.ssafy.tlog.trip.record.service;
 import com.ssafy.tlog.entity.AiStory;
 import com.ssafy.tlog.entity.Trip;
 import com.ssafy.tlog.entity.TripParticipant;
+import com.ssafy.tlog.entity.TripPlan;
 import com.ssafy.tlog.entity.TripRecord;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import com.ssafy.tlog.repository.AiStoryRepository;
 import com.ssafy.tlog.repository.TripParticipantRepository;
+import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
+import com.ssafy.tlog.trip.record.dto.TripPlanResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripDto;
@@ -32,6 +35,7 @@ public class RecordService {
     private final TripRepository tripRepository;
     private final TripParticipantRepository tripParticipantRepository;
     private final TripRecordRepository tripRecordRepository;
+    private final TripPlanRepository tripPlanRepository;
     private final AiStoryRepository aiStoryRepository;
 
     @Transactional(readOnly = true)
@@ -70,15 +74,51 @@ public class RecordService {
         boolean hasStep1 = tripRecordRepository.existsByTripIdAndUserId(tripId, userId);
         boolean hasStep2 = aiStoryRepository.existsByTripIdAndUserId(tripId, userId);
 
-        // 4. 여행 기록 조회 - 없으면 빈 리스트 반환
-        List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdOrderByDay(tripId);
+        // 4. 여행 계획 조회
+        List<TripPlanResponseDto> tripPlans = getTripPlans(tripId);
 
-        // 5. AI 스토리 조회 - 없으면 null 반환
+        // 5. 여행 기록 조회
+        List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
+
+        // 6. AI 스토리 조회
         String aiStoryContent = getAiStoryContent(tripId, userId, hasStep2);
 
-        // 6. 응답 DTO 생성
-        return buildDetailResponseDto(trip, participantsMap.get(tripId), hasStep1, hasStep2,
-                tripRecords, aiStoryContent);
+        // 7. 응답 DTO 생성
+        return buildDetailResponseDto(trip, participantsMap.get(tripId), hasStep1, hasStep2, tripPlans, tripRecords, aiStoryContent);
+    }
+
+    private List<TripPlanResponseDto> getTripPlans(int tripId) {
+        List<TripPlan> allPlans = tripPlanRepository.findAllByTripIdOrderByDayAscPlanOrderAsc(tripId);
+
+        // 날짜별로 계획 그룹화
+        Map<Integer, List<TripPlan>> plansByDay = allPlans.stream()
+                .collect(Collectors.groupingBy(TripPlan::getDay));
+
+        // 날짜별 응답 DTO 생성
+        return plansByDay.entrySet().stream()
+                .map(entry -> {
+                    int day = entry.getKey();
+                    List<TripPlan> plansForDay = entry.getValue();
+
+                    List<TripPlanResponseDto.PlanDetailDto> planDetails = plansForDay.stream()
+                            .map(plan -> TripPlanResponseDto.PlanDetailDto.builder()
+                                    .planId(plan.getPlanId())
+                                    .cityId(plan.getCityId())
+                                    .placeId(plan.getPlaceId())
+                                    .planOrder(plan.getPlanOrder())
+                                    .latitude(plan.getLatitude())
+                                    .longitude(plan.getLongitude())
+                                    .memo(plan.getMemo())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    return TripPlanResponseDto.builder()
+                            .day(day)
+                            .plans(planDetails)
+                            .build();
+                })
+                .sorted((a, b) -> Integer.compare(a.getDay(), b.getDay())) // 날짜순 정렬
+                .collect(Collectors.toList());
     }
 
     // 여행 기본 검증
@@ -194,10 +234,12 @@ public class RecordService {
     // 상세 응답 DTO 생성
     private TripRecordDetailResponseDto buildDetailResponseDto(Trip trip, List<Integer> participants,
                                                                boolean hasStep1, boolean hasStep2,
+                                                               List<TripPlanResponseDto> tripPlans, // 추가된 매개변수
                                                                List<TripRecord> tripRecords,
                                                                String aiStoryContent) {
         // TripDto 생성
         TripRecordDetailResponseDto.TripDto tripDto = TripRecordDetailResponseDto.TripDto.builder()
+                .tripId(trip.getTripId()) // 추가
                 .title(trip.getTitle())
                 .createdAt(trip.getCreateAt())
                 .startDate(trip.getStartDate())
@@ -211,6 +253,7 @@ public class RecordService {
                     LocalDateTime date = trip.getStartDate().plusDays(record.getDay() - 1);
 
                     return TripRecordDetailResponseDto.TripRecordDto.builder()
+                            .recordId(record.getRecordId())
                             .day(record.getDay())
                             .date(date)
                             .memo(record.getMemo())
@@ -224,6 +267,7 @@ public class RecordService {
                 .tripParticipant(participants)
                 .hasStep1(hasStep1)
                 .hasStep2(hasStep2)
+                .tripPlans(tripPlans) // 추가
                 .tripRecords(recordDtos)
                 .aiStoryContent(aiStoryContent)
                 .build();

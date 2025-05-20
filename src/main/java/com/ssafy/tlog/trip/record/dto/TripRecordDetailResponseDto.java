@@ -18,6 +18,7 @@ public class TripRecordDetailResponseDto {
     private List<Integer> tripParticipant;
     private boolean hasStep1;
     private boolean hasStep2;
+    private List<TripPlanResponseDto> tripPlans;
     private List<TripRecordDto> tripRecords;
     private String aiStoryContent;
 
@@ -27,6 +28,7 @@ public class TripRecordDetailResponseDto {
     @AllArgsConstructor
     @Builder
     public static class TripDto {
+        private int tripId;
         private String title;
         private LocalDateTime createdAt;
         private LocalDateTime startDate;
@@ -39,6 +41,7 @@ public class TripRecordDetailResponseDto {
     @AllArgsConstructor
     @Builder
     public static class TripRecordDto {
+        private int recordId;
         private int day;
         private LocalDateTime date;
         private String memo;

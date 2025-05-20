@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TripRecordRepository extends JpaRepository<TripRecord, Integer> {
     boolean existsByTripIdAndUserId(Integer tripId, int userId);
-    List<TripRecord> findAllByTripIdOrderByDay(int tripId);
+    List<TripRecord> findAllByTripIdAndUserIdOrderByDay(int tripId, int userId);
 }
