@@ -15,7 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TripRecordDetailResponseDto {
     private TripDto trip;
-    private List<Integer> tripParticipant;
+    private List<String> tripParticipant;
     private boolean hasStep1;
     private boolean hasStep2;
     private List<TripPlanResponseDto> tripPlans;
