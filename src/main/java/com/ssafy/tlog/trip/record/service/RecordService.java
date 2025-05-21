@@ -13,8 +13,7 @@ import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
-import com.ssafy.tlog.repository.UserRepository;
-import com.ssafy.tlog.trip.record.dto.TripPlanResponseDto;
+import com.ssafy.tlog.trip.record.dto.TripRecordResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripDto;
@@ -79,7 +78,7 @@ public class RecordService {
         boolean hasStep2 = aiStoryRepository.existsByTripIdAndUserId(tripId, userId);
 
         // 4. 여행 계획 조회
-        List<TripPlanResponseDto> tripPlans = getTripPlans(tripId);
+        List<TripRecordResponseDto> tripPlans = getTripPlans(tripId);
 
         // 5. 여행 기록 조회
         List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
@@ -92,7 +91,7 @@ public class RecordService {
                 aiStoryContent);
     }
 
-    private List<TripPlanResponseDto> getTripPlans(int tripId) {
+    private List<TripRecordResponseDto> getTripPlans(int tripId) {
         List<TripPlan> allPlans = tripPlanRepository.findAllByTripIdOrderByDayAscPlanOrderAsc(tripId);
 
         // 날짜별로 계획 그룹화
@@ -105,10 +104,10 @@ public class RecordService {
                     int day = entry.getKey();
                     List<TripPlan> plansForDay = entry.getValue();
 
-                    List<TripPlanResponseDto.PlanDetailDto> planDetails = plansForDay.stream()
-                            .map(plan -> TripPlanResponseDto.PlanDetailDto.builder()
+                    List<TripRecordResponseDto.PlanDetailDto> planDetails = plansForDay.stream()
+                            .map(plan -> TripRecordResponseDto.PlanDetailDto.builder()
                                     .planId(plan.getPlanId())
-                                    .cityId(plan.getCityId())
+//                                    .cityId(plan.getCityId())
                                     .placeId(plan.getPlaceId())
                                     .planOrder(plan.getPlanOrder())
                                     .latitude(plan.getLatitude())
@@ -117,7 +116,7 @@ public class RecordService {
                                     .build())
                             .collect(Collectors.toList());
 
-                    return TripPlanResponseDto.builder()
+                    return TripRecordResponseDto.builder()
                             .day(day)
                             .plans(planDetails)
                             .build();
@@ -237,6 +236,7 @@ public class RecordService {
                     // Trip 엔티티를 TripDto로 변환
                     TripDto tripDto = TripDto.builder()
                             .title(trip.getTitle())
+                            .cityId(trip.getCityId())
                             .createdAt(trip.getCreateAt())
                             .startDate(trip.getStartDate())
                             .endDate(trip.getEndDate())
@@ -256,7 +256,7 @@ public class RecordService {
     // 상세 응답 DTO 생성
     private TripRecordDetailResponseDto buildDetailResponseDto(Trip trip, List<String> participants,
                                                                boolean hasStep1, boolean hasStep2,
-                                                               List<TripPlanResponseDto> tripPlans, // 추가된 매개변수
+                                                               List<TripRecordResponseDto> tripPlans, // 추가된 매개변수
                                                                List<TripRecord> tripRecords,
                                                                String aiStoryContent) {
         // TripDto 생성

@@ -18,7 +18,7 @@ public class TripRecordDetailResponseDto {
     private List<String> tripParticipant;
     private boolean hasStep1;
     private boolean hasStep2;
-    private List<TripPlanResponseDto> tripPlans;
+    private List<TripRecordResponseDto> tripPlans;
     private List<TripRecordDto> tripRecords;
     private String aiStoryContent;
 
