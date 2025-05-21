@@ -5,6 +5,7 @@ import com.ssafy.tlog.entity.Trip;
 import com.ssafy.tlog.entity.TripParticipant;
 import com.ssafy.tlog.entity.TripPlan;
 import com.ssafy.tlog.entity.TripRecord;
+import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import com.ssafy.tlog.repository.AiStoryRepository;
@@ -38,6 +39,7 @@ public class RecordService {
     private final TripRecordRepository tripRecordRepository;
     private final TripPlanRepository tripPlanRepository;
     private final AiStoryRepository aiStoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public TripRecordListResponseDto getTripRecordListByUser(int userId) {
@@ -51,7 +53,7 @@ public class RecordService {
         List<Trip> trips = tripRepository.findAllByTripIdIn(tripIds);
 
         // 3. 여행 관련 정보 맵 조회 (참여자, 단계별 상태)
-        Map<Integer, List<Integer>> tripParticipantsMap = getTripParticipantsMap(tripIds, userId);
+        Map<Integer, List<String>> tripParticipantsMap = getTripParticipantsMap(tripIds, userId);
         Map<Integer, Boolean> hasStep1Map = getHasStep1Map(tripIds, userId);
         Map<Integer, Boolean> hasStep2Map = getHasStep2Map(tripIds, userId);
 
@@ -71,7 +73,7 @@ public class RecordService {
 
         // 3. 여행 관련 정보 조회
         List<Integer> tripIds = List.of(tripId);
-        Map<Integer, List<Integer>> participantsMap = getTripParticipantsMap(tripIds, userId);
+        Map<Integer, List<String>> participantsMap = getTripParticipantsMap(tripIds, userId);
         boolean hasStep1 = tripRecordRepository.existsByTripIdAndUserId(tripId, userId);
         boolean hasStep2 = aiStoryRepository.existsByTripIdAndUserId(tripId, userId);
 
@@ -145,21 +147,38 @@ public class RecordService {
                 .collect(Collectors.toList());
     }
 
-    // 여행 참여자 맵 조회
-    private Map<Integer, List<Integer>> getTripParticipantsMap(List<Integer> tripIds, int userId) {
+    // 여행 참여자 맵 조회 - 기존 메소드를 수정
+    private Map<Integer, List<String>> getTripParticipantsMap(List<Integer> tripIds, int userId) {
         // 모든 여행의 참여자 정보 조회
         List<TripParticipant> allParticipants = tripParticipantRepository.findAllByTripIdIn(tripIds);
 
-        // 여행 ID를 키로, 참여자 ID 리스트를 값으로 하는 맵 생성
-        Map<Integer, List<Integer>> participantsMap = new HashMap<>();
+        // 여행 ID를 키로, 참여자 닉네임 리스트를 값으로 하는 맵 생성
+        Map<Integer, List<String>> participantsMap = new HashMap<>();
 
-        // 각 여행별로 참여자 목록 구성 (현재 사용자 제외)
+        // 참여자 userId 목록 수집
+        Map<Integer, List<Integer>> userIdsByTrip = new HashMap<>();
         for (TripParticipant participant : allParticipants) {
             if (participant.getUserId() != userId) {  // 현재 사용자 제외
-                participantsMap
+                userIdsByTrip
                         .computeIfAbsent(participant.getTripId(), k -> new ArrayList<>())
                         .add(participant.getUserId());
             }
+        }
+
+        // userId를 닉네임으로 변환
+        for (Map.Entry<Integer, List<Integer>> entry : userIdsByTrip.entrySet()) {
+            int tripId = entry.getKey();
+            List<Integer> userIds = entry.getValue();
+
+            // userRepository에서 해당 userIds에 대응하는 유저 정보 조회
+            List<User> users = userRepository.findAllById(userIds);
+
+            // 닉네임 목록 생성
+            List<String> nicknames = users.stream()
+                    .map(User::getNickname)
+                    .collect(Collectors.toList());
+
+            participantsMap.put(tripId, nicknames);
         }
 
         // 모든 여행 ID에 대해 맵 항목 생성 (참여자가 없는 경우 빈 리스트)
@@ -209,7 +228,7 @@ public class RecordService {
 
     // 목록 응답 DTO 생성
     private List<TripInfoDto> createTripInfoDtos(List<Trip> trips,
-                                                 Map<Integer, List<Integer>> tripParticipantsMap,
+                                                 Map<Integer, List<String>> tripParticipantsMap,
                                                  Map<Integer, Boolean> hasStep1Map,
                                                  Map<Integer, Boolean> hasStep2Map) {
         return trips.stream()
@@ -235,7 +254,7 @@ public class RecordService {
     }
 
     // 상세 응답 DTO 생성
-    private TripRecordDetailResponseDto buildDetailResponseDto(Trip trip, List<Integer> participants,
+    private TripRecordDetailResponseDto buildDetailResponseDto(Trip trip, List<String> participants,
                                                                boolean hasStep1, boolean hasStep2,
                                                                List<TripRecordResponseDto> tripPlans, // 추가된 매개변수
                                                                List<TripRecord> tripRecords,

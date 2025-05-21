@@ -23,7 +23,7 @@ public class TripRecordListResponseDto {
     @Builder
     public static class TripInfoDto {
         private TripDto trip;
-        private List<Integer> tripParticipant;
+        private List<String> tripParticipant;
         private boolean hasStep1;
         private boolean hasStep2;
     }
