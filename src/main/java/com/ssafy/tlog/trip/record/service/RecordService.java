@@ -17,6 +17,7 @@ import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripInfoDto;
+import com.ssafy.tlog.trip.record.dto.TripRecordSaveRequestDto;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,7 +85,8 @@ public class RecordService {
         String aiStoryContent = getAiStoryContent(tripId, userId, hasStep2);
 
         // 7. 응답 DTO 생성
-        return buildDetailResponseDto(trip, participantsMap.get(tripId), hasStep1, hasStep2, tripPlans, tripRecords, aiStoryContent);
+        return buildDetailResponseDto(trip, participantsMap.get(tripId), hasStep1, hasStep2, tripPlans, tripRecords,
+                aiStoryContent);
     }
 
     private List<TripPlanResponseDto> getTripPlans(int tripId) {
@@ -273,4 +275,35 @@ public class RecordService {
                 .build();
     }
 
+    @Transactional
+    public void saveTripRecords(int userId, int tripId, TripRecordSaveRequestDto requestDto) {
+        // 1. 여행 존재 여부 확인
+        Trip trip = validateAndGetTrip(tripId);
+
+        // 2. 사용자 접근 권한 확인
+        validateUserAccess(tripId, userId);
+
+        // 3. 날짜별 기록 저장 처리
+        for (TripRecordSaveRequestDto.RecordDto recordDto : requestDto.getRecords()) {
+
+            // 기존 기록이 있는지 확인
+            TripRecord existingRecord = tripRecordRepository
+                    .findByTripIdAndUserIdAndDay(tripId, userId, recordDto.getDay())
+                    .orElse(null);
+
+            if (existingRecord != null) {
+                // 기존 기록 업데이트
+                existingRecord.setMemo(recordDto.getMemo());
+                tripRecordRepository.save(existingRecord);
+            } else {
+                // 새 기록 생성
+                TripRecord newRecord = new TripRecord();
+                newRecord.setTripId(tripId);
+                newRecord.setUserId(userId);
+                newRecord.setDay(recordDto.getDay());
+                newRecord.setMemo(recordDto.getMemo());
+                tripRecordRepository.save(newRecord);
+            }
+        }
+    }
 }
