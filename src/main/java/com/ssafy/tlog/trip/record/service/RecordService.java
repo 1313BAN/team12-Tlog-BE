@@ -13,6 +13,7 @@ import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
+import com.ssafy.tlog.repository.UserRepository;
 import com.ssafy.tlog.trip.record.dto.TripRecordResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
