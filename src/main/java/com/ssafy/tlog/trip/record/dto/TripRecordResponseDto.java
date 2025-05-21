@@ -12,7 +12,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TripPlanResponseDto {
+public class TripRecordResponseDto {
     private int day;
     private List<PlanDetailDto> plans;
 
@@ -23,8 +23,8 @@ public class TripPlanResponseDto {
     @AllArgsConstructor
     public static class PlanDetailDto {
         private int planId;
-        private int cityId;
-        private int placeId;
+//        private int cityId;
+        private String placeId;
         private int planOrder;
         private double latitude;
         private double longitude;

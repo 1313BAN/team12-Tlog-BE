@@ -12,7 +12,6 @@ import lombok.Setter;
 @Entity
 public class City {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int cityId;
     private String cityEn;
     private String cityKo;

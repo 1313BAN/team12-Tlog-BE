@@ -35,6 +35,7 @@ public class TripRecordListResponseDto {
     @Builder
     public static class TripDto {
         private String title;
+        private int cityId;
         private LocalDateTime createdAt;
         private LocalDateTime startDate;
         private LocalDateTime endDate;

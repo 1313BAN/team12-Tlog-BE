@@ -4,7 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class ApiResponse {
+public class ApiResponse<T> {
 
     // 상태코드 + 메시지
     public static <T> ResponseEntity<ResponseWrapper<Void>> success(HttpStatus status, String message) {
