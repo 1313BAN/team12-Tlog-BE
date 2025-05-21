@@ -53,7 +53,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
     // AI
-    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M1'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
 
 }
 

@@ -11,6 +11,7 @@ import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
 import com.ssafy.tlog.trip.record.dto.AiStoryResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
+import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto.TripRecordDto;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +76,7 @@ public class AiStoryService {
         promptData.put("tripDuration", tripDetail.getTripRecords().size());
 
         StringBuilder dayByDayContent = new StringBuilder();
-        for (TripRecordDetailResponseDto.TripRecordDto record : tripDetail.getTripRecords()) {
+        for (TripRecordDto record : tripDetail.getTripRecords()) {
             dayByDayContent.append("【 ")
                     .append(record.getDay())
                     .append("일차 】 ")
@@ -126,6 +127,6 @@ public class AiStoryService {
         Prompt prompt = promptTemplate.create(promptData);
 
         var result = chatModel.call(prompt);
-        return result.getResult().getOutput().getContent();
+        return result.getResult().getOutput().getText();
     }
 }
