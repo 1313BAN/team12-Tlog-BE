@@ -236,6 +236,7 @@ public class RecordService {
                 .map(trip -> {
                     // Trip 엔티티를 TripDto로 변환
                     TripDto tripDto = TripDto.builder()
+                            .tripId(trip.getTripId())
                             .title(trip.getTitle())
                             .cityId(trip.getCityId())
                             .createdAt(trip.getCreateAt())

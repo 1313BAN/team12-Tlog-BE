@@ -18,12 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiStoryService {
@@ -99,14 +101,14 @@ public class AiStoryService {
                 다음 여행 기록을 바탕으로 생생하고 실용적인 여행 블로그 글을 작성해주세요.
                 
                 ## 여행 기본 정보
-                - 여행 제목: {{title}}
-                - 여행 기간: {{startDate}} ~ {{endDate}} (총 {{tripDuration}}일)
+                - 여행 제목: {title}
+                - 여행 기간: {startDate} ~ {endDate} (총 {tripDuration}일)
                 
                 ## 일자별 기록
-                {{dayByDayContent}}
+                {dayByDayContent}
                 
                 ## 방문한 주요 장소
-                {{places}}
+                {places}
                 
                 다음 지침을 따라주세요:
                 1. 명확한 제목과 서브제목을 사용하여 구조화된 마크다운 형식으로 작성하세요.
@@ -125,6 +127,8 @@ public class AiStoryService {
 
         PromptTemplate promptTemplate = new PromptTemplate(templateString);
         Prompt prompt = promptTemplate.create(promptData);
+
+        log.warn(prompt.toString());
 
         var result = chatModel.call(prompt);
         return result.getResult().getOutput().getText();

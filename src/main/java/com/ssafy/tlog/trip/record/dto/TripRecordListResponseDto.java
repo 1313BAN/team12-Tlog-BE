@@ -34,6 +34,7 @@ public class TripRecordListResponseDto {
     @AllArgsConstructor
     @Builder
     public static class TripDto {
+        private int tripId;
         private String title;
         private int cityId;
         private LocalDateTime createdAt;
