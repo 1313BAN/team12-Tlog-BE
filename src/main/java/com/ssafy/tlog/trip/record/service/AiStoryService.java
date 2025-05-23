@@ -173,7 +173,7 @@ public class AiStoryService {
         aiStoryRepository.delete(aiStory);
     }
 
-    public AiStory saveAiStory(int userId, int tripId, AiRequestDto aiRequestDto) {
+    public AiStoryResponseDto saveAiStory(int userId, int tripId, AiRequestDto aiRequestDto) {
         if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
             throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
         }
@@ -189,8 +189,13 @@ public class AiStoryService {
         // AI 스토리 정보 설정
         aiStory.setTripId(tripId);
         aiStory.setUserId(userId);
-        aiStory.setContent(aiRequestDto.getAiStroy().trim());
+        aiStory.setContent(aiRequestDto.getAiStory().trim());
 
-        return aiStoryRepository.save(aiStory);
+        aiStoryRepository.save(aiStory);
+
+        return AiStoryResponseDto.builder()
+                .tripId(tripId)
+                .aiStory(aiRequestDto.getAiStory().trim())
+                .build();
     }
 }

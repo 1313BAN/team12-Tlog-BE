@@ -44,11 +44,11 @@ public class AiStoryController {
 
     // 저장
     @PostMapping("/{tripId}/ai-story/save")
-    public ResponseEntity<ResponseWrapper<AiStory>> saveAiStory(
+    public ResponseEntity<ResponseWrapper<AiStoryResponseDto>> saveAiStory(
             @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable int tripId,
             @RequestBody AiRequestDto aiRequestDto) {
-        AiStory savedStory = aiStoryService.saveAiStory(userDetails.getUserId(), tripId, aiRequestDto);
-        return ApiResponse.success(HttpStatus.OK, "AI 스토리가 성공적으로 저장되었습니다.", savedStory
+        AiStoryResponseDto aiStoryResponseDto = aiStoryService.saveAiStory(userDetails.getUserId(), tripId, aiRequestDto);
+        return ApiResponse.success(HttpStatus.OK, "AI 스토리가 성공적으로 저장되었습니다.", aiStoryResponseDto
         );
     }
 }

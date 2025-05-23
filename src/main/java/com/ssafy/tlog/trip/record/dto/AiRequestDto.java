@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AiRequestDto {
-    String aiStroy;
+    String aiStory;
 }
