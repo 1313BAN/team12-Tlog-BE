@@ -9,6 +9,7 @@ import com.ssafy.tlog.repository.AiStoryRepository;
 import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
+import com.ssafy.tlog.trip.record.dto.AiRequestDto;
 import com.ssafy.tlog.trip.record.dto.AiStoryResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto.TripRecordDto;
@@ -155,5 +156,41 @@ public class AiStoryService {
 
         var result = chatModel.call(prompt);
         return result.getResult().getOutput().getText();
+    }
+
+    public void deleteAiStory(int userId, int tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다."));
+
+        if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
+            throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
+        }
+
+        // AI 스토리 존재 여부 확인 및 삭제
+        AiStory aiStory = aiStoryRepository.findByTripIdAndUserId(tripId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("삭제할 AI 스토리가 존재하지 않습니다."));
+
+        aiStoryRepository.delete(aiStory);
+    }
+
+    public AiStory saveAiStory(int userId, int tripId, AiRequestDto aiRequestDto) {
+        if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
+            throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
+        }
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다."));
+
+
+        // 기존 AI 스토리 찾기 또는 새로 생성
+        AiStory aiStory = aiStoryRepository.findByTripIdAndUserId(tripId, userId)
+                .orElse(new AiStory());
+
+        // AI 스토리 정보 설정
+        aiStory.setTripId(tripId);
+        aiStory.setUserId(userId);
+        aiStory.setContent(aiRequestDto.getAiStroy().trim());
+
+        return aiStoryRepository.save(aiStory);
     }
 }
