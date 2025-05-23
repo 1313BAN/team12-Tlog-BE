@@ -40,8 +40,9 @@ public class AiStoryService {
 
     @Transactional
     public AiStoryResponseDto generateAiStory(int userId, int tripId) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다."));
+        if (!tripRepository.existsById(tripId)) {
+            throw new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다.");
+        }
 
         if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
             throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
@@ -152,15 +153,16 @@ public class AiStoryService {
         PromptTemplate promptTemplate = new PromptTemplate(templateString);
         Prompt prompt = promptTemplate.create(promptData);
 
-        log.warn("Generated prompt: {}", prompt.toString());
+        log.debug("Generated prompt: {}", prompt.toString());
 
         var result = chatModel.call(prompt);
         return result.getResult().getOutput().getText();
     }
 
     public void deleteAiStory(int userId, int tripId) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다."));
+        if (!tripRepository.existsById(tripId)) {
+            throw new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다.");
+        }
 
         if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
             throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
@@ -178,9 +180,9 @@ public class AiStoryService {
             throw new InvalidUserException("해당 여행 기록에 접근 권한이 없습니다.");
         }
 
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다."));
-
+        if (!tripRepository.existsById(tripId)) {
+            throw new ResourceNotFoundException("요청한 여행을 찾을 수 없습니다.");
+        }
 
         // 기존 AI 스토리 찾기 또는 새로 생성
         AiStory aiStory = aiStoryRepository.findByTripIdAndUserId(tripId, userId)

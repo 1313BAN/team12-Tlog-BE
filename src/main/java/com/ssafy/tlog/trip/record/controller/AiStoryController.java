@@ -3,7 +3,6 @@ package com.ssafy.tlog.trip.record.controller;
 import com.ssafy.tlog.common.response.ApiResponse;
 import com.ssafy.tlog.common.response.ResponseWrapper;
 import com.ssafy.tlog.config.security.CustomUserDetails;
-import com.ssafy.tlog.entity.AiStory;
 import com.ssafy.tlog.trip.record.dto.AiRequestDto;
 import com.ssafy.tlog.trip.record.dto.AiStoryResponseDto;
 import com.ssafy.tlog.trip.record.service.AiStoryService;
@@ -36,7 +35,7 @@ public class AiStoryController {
 
     // 삭제
     @DeleteMapping("/{tripId}/ai-story")
-    public ResponseEntity<ResponseWrapper<Void>> deleteAiStroy(
+    public ResponseEntity<ResponseWrapper<Void>> deleteAiStory(
             @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable int tripId) {
         aiStoryService.deleteAiStory(userDetails.getUserId(), tripId);
         return ApiResponse.success(HttpStatus.OK, "AI 스토리가 성공적으로 삭제되었습니다.");
