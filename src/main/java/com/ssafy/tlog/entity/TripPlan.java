@@ -25,5 +25,6 @@ public class TripPlan {
     private double latitude;
     private double longitude;
     private String memo;
+//    private int cityId;
 
 }

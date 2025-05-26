@@ -23,11 +23,11 @@ public class TripRecordResponseDto {
     @AllArgsConstructor
     public static class PlanDetailDto {
         private int planId;
-//        private int cityId;
         private String placeId;
         private int planOrder;
         private double latitude;
         private double longitude;
         private String memo;
+        private String placeName;
     }
 }
