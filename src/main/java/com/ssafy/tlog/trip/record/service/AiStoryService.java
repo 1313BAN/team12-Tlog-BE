@@ -1,7 +1,6 @@
 package com.ssafy.tlog.trip.record.service;
 
 import com.ssafy.tlog.entity.AiStory;
-import com.ssafy.tlog.entity.Trip;
 import com.ssafy.tlog.entity.TripRecord;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
@@ -96,8 +95,9 @@ public class AiStoryService {
         // 여행 계획 정보 (장소별 메모)
         List<String> places = tripDetail.getTripPlans().stream()
                 .flatMap(day -> day.getPlans().stream())
-                .map(plan -> plan.getMemo())
-
+                .map(plan -> plan.getPlaceName() != null
+                        ? plan.getPlaceName()
+                        : "장소명 미기재")
                 .filter(memo -> memo != null && !memo.isBlank())
                 .collect(Collectors.toList());
         promptData.put("places", String.join(", ", places));
