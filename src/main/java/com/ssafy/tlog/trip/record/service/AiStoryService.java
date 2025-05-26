@@ -97,6 +97,7 @@ public class AiStoryService {
         List<String> places = tripDetail.getTripPlans().stream()
                 .flatMap(day -> day.getPlans().stream())
                 .map(plan -> plan.getMemo())
+
                 .filter(memo -> memo != null && !memo.isBlank())
                 .collect(Collectors.toList());
         promptData.put("places", String.join(", ", places));
@@ -110,7 +111,7 @@ public class AiStoryService {
 
             dayPlan.getPlans().forEach(plan -> {
                 plannedItinerary.append("- 순서 ").append(plan.getPlanOrder())
-                        .append(": ").append(plan.getMemo() != null ? plan.getMemo() : "장소명 미기재")
+                        .append(": ").append(plan.getPlaceName() != null ? plan.getPlaceName() : "장소명 미기재")
                         .append("\n");
             });
             plannedItinerary.append("\n");
@@ -153,7 +154,7 @@ public class AiStoryService {
         PromptTemplate promptTemplate = new PromptTemplate(templateString);
         Prompt prompt = promptTemplate.create(promptData);
 
-        log.debug("Generated prompt: {}", prompt.toString());
+        log.info("Generated prompt: {}", prompt.toString());
 
         var result = chatModel.call(prompt);
         return result.getResult().getOutput().getText();
