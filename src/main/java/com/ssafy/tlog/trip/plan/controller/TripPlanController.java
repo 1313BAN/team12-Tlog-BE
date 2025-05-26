@@ -29,6 +29,16 @@ public class TripPlanController {
         return ApiResponse.success(HttpStatus.OK, "여행 계획이 성공적으로 저장되었습니다.",responseDto);
     }
 
+    @PutMapping("/{tripId}/plan")
+    public ResponseEntity<ResponseWrapper<TripPlanResponseDto>> updateTripPlan(
+            @PathVariable int tripId,
+            @RequestBody TripPlanRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        TripPlanResponseDto responseDto = tripPlanService.updateTripPlan(tripId, requestDto, userDetails.getUser());
+        return ApiResponse.success(HttpStatus.OK, "여행 계획이 성공적으로 수정되었습니다.", responseDto);
+    }
+
     @GetMapping("/{tripId}/plan")
     public ResponseEntity<ResponseWrapper<TripPlanDetailResponseDto>> getTripPlanDetail(
             @PathVariable int tripId,
