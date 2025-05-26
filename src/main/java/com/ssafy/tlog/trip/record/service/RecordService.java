@@ -43,7 +43,7 @@ public class RecordService {
     private final AiStoryRepository aiStoryRepository;
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TripRecordListResponseDto getTripRecordListByUser(int userId) {
         // 1. 사용자가 참여한 여행 ID 목록 조회
         List<Integer> tripIds = getUserTripIds(userId);
@@ -65,7 +65,7 @@ public class RecordService {
         return TripRecordListResponseDto.builder().trips(tripInfoDtos).build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TripRecordDetailResponseDto getTripRecordDetailByTripId(int userId, int tripId) {
         // 1. 여행 존재 여부 확인
         Trip trip = validateAndGetTrip(tripId);
@@ -83,7 +83,7 @@ public class RecordService {
         List<TripRecordResponseDto> tripPlans = getTripPlans(tripId);
 
         // 5. 여행 기록 조회 및 동기화
-        List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
+        List<TripRecord> tripRecords = getTripRecordsWithSync(tripId, userId, trip);
 
         // 6. AI 스토리 조회
         String aiStoryContent = getAiStoryContent(tripId, userId, hasStep2);
@@ -334,7 +334,8 @@ public class RecordService {
     /**
      * 간단한 여행 기록 동기화 + 초과 기록 삭제
      */
-    private List<TripRecord> getTripRecordsWithSync(int tripId, int userId, Trip trip) {
+    @Transactional
+    public List<TripRecord> getTripRecordsWithSync(int tripId, int userId, Trip trip) {
         // 현재 여행 일수 계산
         int totalDays = (int) ChronoUnit.DAYS.between(
                 trip.getStartDate().toLocalDate(),
@@ -350,7 +351,8 @@ public class RecordService {
                 .collect(Collectors.toList());
 
         if (!excessRecords.isEmpty()) {
-            tripRecordRepository.deleteAll(excessRecords);
+            System.out.println("삭제할 기록 수: " + excessRecords.size());
+            tripRecordRepository.deleteExcessRecords(tripId, userId, totalDays);
         }
 
         // 결과 리스트 (totalDays 크기로 초기화)
