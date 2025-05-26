@@ -14,13 +14,14 @@ import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
 import com.ssafy.tlog.repository.UserRepository;
-import com.ssafy.tlog.trip.record.dto.TripRecordResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordDetailResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordListResponseDto.TripInfoDto;
+import com.ssafy.tlog.trip.record.dto.TripRecordResponseDto;
 import com.ssafy.tlog.trip.record.dto.TripRecordSaveRequestDto;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,7 +82,7 @@ public class RecordService {
         // 4. 여행 계획 조회
         List<TripRecordResponseDto> tripPlans = getTripPlans(tripId);
 
-        // 5. 여행 기록 조회
+        // 5. 여행 기록 조회 및 동기화
         List<TripRecord> tripRecords = tripRecordRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
 
         // 6. AI 스토리 조회
@@ -328,5 +329,56 @@ public class RecordService {
                 tripRecordRepository.save(newRecord);
             }
         }
+    }
+
+    /**
+     * 간단한 여행 기록 동기화 + 초과 기록 삭제
+     */
+    private List<TripRecord> getTripRecordsWithSync(int tripId, int userId, Trip trip) {
+        // 현재 여행 일수 계산
+        int totalDays = (int) ChronoUnit.DAYS.between(
+                trip.getStartDate().toLocalDate(),
+                trip.getEndDate().toLocalDate()
+        ) + 1;
+
+        // 기존 기록 조회
+        List<TripRecord> existingRecords = tripRecordRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
+
+        // 초과된 day 기록들 삭제
+        List<TripRecord> excessRecords = existingRecords.stream()
+                .filter(record -> record.getDay() > totalDays)
+                .collect(Collectors.toList());
+
+        if (!excessRecords.isEmpty()) {
+            tripRecordRepository.deleteAll(excessRecords);
+        }
+
+        // 결과 리스트 (totalDays 크기로 초기화)
+        List<TripRecord> result = new ArrayList<>();
+
+        // 1일차부터 마지막 일차까지 처리
+        for (int day = 1; day <= totalDays; day++) {
+            final int currentDay = day;
+            // 해당 일차의 기존 기록 찾기 (삭제되지 않은 것만)
+            TripRecord existingRecord = existingRecords.stream()
+                    .filter(record -> record.getDay() == currentDay)
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingRecord != null) {
+                // 기존 기록이 있으면 추가
+                result.add(existingRecord);
+            } else {
+                // 기존 기록이 없으면 빈 기록 생성 (DB 저장 안함)
+                TripRecord emptyRecord = new TripRecord();
+                emptyRecord.setTripId(tripId);
+                emptyRecord.setUserId(userId);
+                emptyRecord.setDay(day);
+                emptyRecord.setMemo("");
+                result.add(emptyRecord);
+            }
+        }
+
+        return result;
     }
 }
