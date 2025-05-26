@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EditStatusResponse {
-    private boolean isLocked;
+    private boolean locked;
     private Integer currentOwner;
 }
