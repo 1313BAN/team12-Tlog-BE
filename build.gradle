@@ -55,6 +55,9 @@ dependencies {
     // AI
     implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
 
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 }
 
 tasks.named('test') {
