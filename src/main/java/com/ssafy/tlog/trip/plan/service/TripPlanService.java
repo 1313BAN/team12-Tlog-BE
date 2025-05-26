@@ -13,6 +13,7 @@ import com.ssafy.tlog.trip.plan.dto.TripPlanRequestDto;
 import com.ssafy.tlog.trip.plan.dto.TripPlanResponseDto;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,7 +163,13 @@ public class TripPlanService {
 
         // 5. 새로운 친구들 추가
         if (requestDto.getFriendUserIds() != null && !requestDto.getFriendUserIds().isEmpty()) {
-            requestDto.getFriendUserIds().forEach(friendId -> {
+            // 현재 사용자 ID 제외 및 중복 제거
+            List<Integer> friendIds = requestDto.getFriendUserIds().stream()
+                    .filter(friendId -> !friendId.equals(user.getUserId())) // 현재 사용자 제외
+                    .distinct() // 중복 제거
+                    .collect(Collectors.toList());
+
+            friendIds.forEach(friendId -> {
                 TripParticipant friendParticipant = TripParticipant.builder()
                         .tripId(tripId)
                         .userId(friendId)
