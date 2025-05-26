@@ -114,6 +114,7 @@ public class RecordService {
                                     .latitude(plan.getLatitude())
                                     .longitude(plan.getLongitude())
                                     .memo(plan.getMemo())
+                                    .placeName(plan.getPlaceName())
                                     .build())
                             .collect(Collectors.toList());
 
