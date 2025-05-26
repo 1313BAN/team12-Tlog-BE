@@ -24,6 +24,8 @@ public class TripPlanDetailResponseDto {
 
     // 계획 장소들
     private List<PlanDetailDto> plans;
+    // 참여자 정보
+    private List<ParticipantDto> participants;
 
     @Getter
     @NoArgsConstructor
@@ -39,5 +41,14 @@ public class TripPlanDetailResponseDto {
         private int planOrder;
         private int placeTypeId;
         private String memo;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ParticipantDto {
+        private int userId;
+        private String nickname;
     }
 }

@@ -10,5 +10,6 @@ public interface TripParticipantRepository extends JpaRepository<TripParticipant
 
     List<TripParticipant> findAllByUserId(int userId);
     List<TripParticipant> findAllByTripIdIn(List<Integer> tripIds);
+    List<TripParticipant> findAllByTripId(int tripId);
     boolean existsByTripIdAndUserId(int tripId, int userId);
 }
