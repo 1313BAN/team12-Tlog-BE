@@ -51,7 +51,7 @@ public class RecordService {
         }
 
         // 2. 여행 기본 정보 조회
-        List<Trip> trips = tripRepository.findAllByTripIdIn(tripIds);
+        List<Trip> trips = tripRepository.findAllByTripIdInOrderByTripIdDesc(tripIds);
 
         // 3. 여행 관련 정보 맵 조회 (참여자, 단계별 상태)
         Map<Integer, List<String>> tripParticipantsMap = getTripParticipantsMap(tripIds, userId);
