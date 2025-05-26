@@ -7,6 +7,7 @@ import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRepository;
+import com.ssafy.tlog.repository.UserRepository;
 import com.ssafy.tlog.trip.plan.dto.TripPlanDetailResponseDto;
 import com.ssafy.tlog.trip.plan.dto.TripPlanRequestDto;
 import com.ssafy.tlog.trip.plan.dto.TripPlanResponseDto;
@@ -23,6 +24,7 @@ public class TripPlanService {
     private final TripRepository tripRepository;
     private final TripPlanRepository tripPlanRepository;
     private final TripParticipantRepository tripParticipantRepository;
+    private final UserRepository userRepository;
 
     public TripPlanResponseDto createTripPlan(TripPlanRequestDto requestDto, User creator) {
         Trip trip = Trip.builder()
@@ -83,7 +85,17 @@ public class TripPlanService {
         // 3. TripPlan 정보 조회 (day, planOrder 순으로 정렬)
         List<TripPlan> tripPlans = tripPlanRepository.findAllByTripIdOrderByDayAscPlanOrderAsc(tripId);
 
-        // 4. DTO 변환
+        // 4. 참여자 정보 조회
+        List<TripParticipant> participants = tripParticipantRepository.findAllByTripId(tripId);
+
+        // 5. 참여자의 User 정보 조회
+        List<Integer> userIds = participants.stream()
+                .map(TripParticipant::getUserId)
+                .toList();
+
+        List<User> participantUsers = userRepository.findAllById(userIds);
+
+        // 6. DTO 변환
         List<TripPlanDetailResponseDto.PlanDetailDto> planDetails = tripPlans.stream()
                 .map(plan -> TripPlanDetailResponseDto.PlanDetailDto.builder()
                         .planId(plan.getPlanId())
@@ -98,6 +110,13 @@ public class TripPlanService {
                         .build())
                 .toList();
 
+        List<TripPlanDetailResponseDto.ParticipantDto> participantDtos = participantUsers.stream()
+                .map(participantUser -> TripPlanDetailResponseDto.ParticipantDto.builder()
+                        .userId(participantUser.getUserId())
+                        .nickname(participantUser.getNickname())
+                        .build())
+                .toList();
+
         return TripPlanDetailResponseDto.builder()
                 .tripId(trip.getTripId())
                 .cityId(trip.getCityId())
@@ -106,6 +125,7 @@ public class TripPlanService {
                 .startDate(trip.getStartDate())
                 .endDate(trip.getEndDate())
                 .plans(planDetails)
+                .participants(participantDtos) // 참여자 정보 추가
                 .build();
     }
 
