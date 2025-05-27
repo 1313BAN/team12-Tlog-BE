@@ -2,6 +2,7 @@ package com.ssafy.tlog.trip.record.service;
 
 import com.ssafy.tlog.entity.AiStory;
 import com.ssafy.tlog.entity.Trip;
+import com.ssafy.tlog.entity.TripImage;
 import com.ssafy.tlog.entity.TripParticipant;
 import com.ssafy.tlog.entity.TripPlan;
 import com.ssafy.tlog.entity.TripRecord;
@@ -9,6 +10,7 @@ import com.ssafy.tlog.entity.User;
 import com.ssafy.tlog.exception.custom.InvalidUserException;
 import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
 import com.ssafy.tlog.repository.AiStoryRepository;
+import com.ssafy.tlog.repository.TripImageRepository;
 import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripPlanRepository;
 import com.ssafy.tlog.repository.TripRecordRepository;
@@ -42,6 +44,8 @@ public class RecordService {
     private final TripPlanRepository tripPlanRepository;
     private final AiStoryRepository aiStoryRepository;
     private final UserRepository userRepository;
+    private final TripImageRepository tripImageRepository;
+    private final FileUploadService fileUploadService;
 
     @Transactional
     public TripRecordListResponseDto getTripRecordListByUser(int userId) {
@@ -85,12 +89,17 @@ public class RecordService {
         // 5. 여행 기록 조회 및 동기화
         List<TripRecord> tripRecords = getTripRecordsWithSync(tripId, userId, trip);
 
+        // 이미지 정보 조회 (추가)
+        List<TripImage> tripImages = tripImageRepository.findAllByTripIdAndUserIdOrderByDay(tripId, userId);
+        Map<Integer, TripImage> imageMap = tripImages.stream()
+                .collect(Collectors.toMap(TripImage::getDay, image -> image));
+
         // 6. AI 스토리 조회
         String aiStoryContent = getAiStoryContent(tripId, userId, hasStep2);
 
         // 7. 응답 DTO 생성
         return buildDetailResponseDto(trip, participantsMap.get(tripId), hasStep1, hasStep2, tripPlans, tripRecords,
-                aiStoryContent);
+                imageMap,aiStoryContent);
     }
 
     private List<TripRecordResponseDto> getTripPlans(int tripId) {
@@ -262,6 +271,7 @@ public class RecordService {
                                                                boolean hasStep1, boolean hasStep2,
                                                                List<TripRecordResponseDto> tripPlans, // 추가된 매개변수
                                                                List<TripRecord> tripRecords,
+                                                               Map<Integer, TripImage> imageMap,
                                                                String aiStoryContent) {
         // TripDto 생성
         TripRecordDetailResponseDto.TripDto tripDto = TripRecordDetailResponseDto.TripDto.builder()
@@ -272,17 +282,19 @@ public class RecordService {
                 .endDate(trip.getEndDate())
                 .build();
 
-        // 날짜별 기록 DTO 생성
+        // 날짜별 기록 DTO 생성 (이미지 정보 포함)
         List<TripRecordDetailResponseDto.TripRecordDto> recordDtos = tripRecords.stream()
                 .map(record -> {
-                    // 여행 시작일로부터 day만큼 더하여 날짜 계산
                     LocalDateTime date = trip.getStartDate().plusDays(record.getDay() - 1);
+                    TripImage image = imageMap.get(record.getDay());
 
                     return TripRecordDetailResponseDto.TripRecordDto.builder()
                             .recordId(record.getRecordId())
                             .day(record.getDay())
                             .date(date)
                             .memo(record.getMemo())
+                            .imageUrl(image != null ? image.getImageUrl() : null)
+                            .originalName(image != null ? image.getOriginalName() : null)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -327,6 +339,45 @@ public class RecordService {
                 newRecord.setDay(recordDto.getDay());
                 newRecord.setMemo(recordDto.getMemo());
                 tripRecordRepository.save(newRecord);
+            }
+
+            // 4. 이미지 정보 처리 (추가된 부분)
+            if (recordDto.getImageUrl() != null && !recordDto.getImageUrl().isEmpty()) {
+                TripImage existingImage = tripImageRepository
+                        .findByTripIdAndUserIdAndDay(tripId, userId, recordDto.getDay())
+                        .orElse(null);
+
+                if (existingImage != null) {
+                    // 기존 이미지와 다른 경우에만 업데이트
+                    if (!existingImage.getImageUrl().equals(recordDto.getImageUrl())) {
+                        // 기존 이미지 파일 삭제
+                        fileUploadService.deleteImage(existingImage.getImageUrl());
+
+                        // 새 이미지 정보로 업데이트
+                        existingImage.setImageUrl(recordDto.getImageUrl());
+                        existingImage.setOriginalName(recordDto.getOriginalName());
+                        tripImageRepository.save(existingImage);
+                    }
+                } else {
+                    // 새 이미지 정보 생성
+                    TripImage newImage = new TripImage();
+                    newImage.setTripId(tripId);
+                    newImage.setUserId(userId);
+                    newImage.setDay(recordDto.getDay());
+                    newImage.setImageUrl(recordDto.getImageUrl());
+                    newImage.setOriginalName(recordDto.getOriginalName());
+                    tripImageRepository.save(newImage);
+                }
+            } else {
+                // 이미지 URL이 없는 경우, 기존 이미지 삭제
+                TripImage existingImage = tripImageRepository
+                        .findByTripIdAndUserIdAndDay(tripId, userId, recordDto.getDay())
+                        .orElse(null);
+
+                if (existingImage != null) {
+                    fileUploadService.deleteImage(existingImage.getImageUrl());
+                    tripImageRepository.deleteByTripIdAndUserIdAndDay(tripId, userId, recordDto.getDay());
+                }
             }
         }
     }
