@@ -116,7 +116,7 @@ public class PlanLockController {
         Integer currentOwner = planLockUtil.checkPlanLock(tripId);
 
         EditStatusResponse response = EditStatusResponse.builder()
-                .isLocked(currentOwner != null)
+                .locked(currentOwner != null)
                 .currentOwner(currentOwner != null ? currentOwner : -1)
                 .build();
 
