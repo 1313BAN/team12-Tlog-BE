@@ -17,4 +17,8 @@ public interface TripRecordRepository extends JpaRepository<TripRecord, Integer>
     @Modifying
     @Query("DELETE FROM TripRecord tr WHERE tr.tripId = :tripId AND tr.userId = :userId AND tr.day > :maxDay")
     void deleteExcessRecords(int tripId, int userId, int maxDay);
+
+    void deleteByTripId(int tripId);
+
+    void deleteByTripIdAndUserId(int tripId, int userId);
 }

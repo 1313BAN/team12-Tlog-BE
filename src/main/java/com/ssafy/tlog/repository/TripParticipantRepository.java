@@ -18,4 +18,8 @@ public interface TripParticipantRepository extends JpaRepository<TripParticipant
     @Modifying
     @Query("DELETE FROM TripParticipant tp WHERE tp.tripId = :tripId AND tp.userId != :userId")
     void deleteAllByTripIdExceptUser(int tripId, int userId);
+
+    void deleteByTripIdAndUserId(int tripId, int userId);
+
+    void deleteByTripId(int tripId);
 }

@@ -7,4 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AiStoryRepository extends JpaRepository<AiStory, Integer> {
     boolean existsByTripIdAndUserId(Integer tripId, int userId);
     Optional<AiStory> findByTripIdAndUserId(int tripId, int userId);
+
+    void deleteByTripId(int tripId);
+
+    void deleteByTripIdAndUserId(int tripId, int userId);
 }

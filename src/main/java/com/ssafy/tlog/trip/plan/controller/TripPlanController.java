@@ -48,4 +48,18 @@ public class TripPlanController {
         return ApiResponse.success(HttpStatus.OK, "여행 계획 조회가 성공적으로 완료되었습니다.", responseDto);
     }
 
+    @DeleteMapping("/{tripId}")
+    public ResponseEntity<ResponseWrapper<Void>> deleteTrip(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable int tripId) {
+
+        boolean isLastParticipant = tripPlanService.deleteUserFromTrip(userDetails.getUserId(), tripId);
+
+        String message = isLastParticipant ?
+                "여행이 성공적으로 삭제되었습니다." :
+                "여행에서 성공적으로 탈퇴했습니다.";
+
+        return ApiResponse.success(HttpStatus.OK, message);
+    }
+
 }
