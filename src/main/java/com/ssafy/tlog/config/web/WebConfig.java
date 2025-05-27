@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**") // 또는 모든 요청이라면 "/**"
-                .allowedOrigins("http://localhost:5173") // 개발 서버 주소
+                .allowedOrigins("http://localhost:5173", "http://localhost:5174") // 개발 서버 주소
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization") // Authorization 헤더 노출 설정 추가

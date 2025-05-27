@@ -4,8 +4,12 @@ import com.ssafy.tlog.entity.Trip;
 import com.ssafy.tlog.entity.TripParticipant;
 import com.ssafy.tlog.entity.TripPlan;
 import com.ssafy.tlog.entity.User;
+import com.ssafy.tlog.exception.custom.InvalidUserException;
+import com.ssafy.tlog.exception.custom.ResourceNotFoundException;
+import com.ssafy.tlog.repository.AiStoryRepository;
 import com.ssafy.tlog.repository.TripParticipantRepository;
 import com.ssafy.tlog.repository.TripPlanRepository;
+import com.ssafy.tlog.repository.TripRecordRepository;
 import com.ssafy.tlog.repository.TripRepository;
 import com.ssafy.tlog.repository.UserRepository;
 import com.ssafy.tlog.trip.plan.dto.TripPlanDetailResponseDto;
@@ -26,6 +30,8 @@ public class TripPlanService {
     private final TripPlanRepository tripPlanRepository;
     private final TripParticipantRepository tripParticipantRepository;
     private final UserRepository userRepository;
+    private final AiStoryRepository aiStoryRepository;
+    private final TripRecordRepository tripRecordRepository;
 
     @Transactional
     public TripPlanResponseDto createTripPlan(TripPlanRequestDto requestDto, User creator) {
@@ -200,4 +206,61 @@ public class TripPlanService {
                 .build();
     }
 
+    @Transactional
+    public boolean deleteUserFromTrip(int userId, int tripId) {
+        // 1. 여행 존재 여부 확인
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 여행입니다."));
+
+        // 2. 사용자 참여 여부 확인
+        if (!tripParticipantRepository.existsByTripIdAndUserId(tripId, userId)) {
+            throw new InvalidUserException("해당 여행에 참여하지 않은 사용자입니다.");
+        }
+
+        // 3. 현재 참여자 수 확인
+        List<TripParticipant> participants = tripParticipantRepository.findAllByTripId(tripId);
+        boolean isLastParticipant = participants.size() == 1;
+
+        if (isLastParticipant) {
+            // 4-1. 마지막 참여자인 경우: 여행과 관련된 모든 데이터 삭제
+            deleteAllTripData(tripId);
+            return true;
+        } else {
+            // 4-2. 다른 참여자가 있는 경우: 해당 사용자만 탈퇴 처리
+            tripParticipantRepository.deleteByTripIdAndUserId(tripId, userId);
+
+            // 해당 사용자의 개인 데이터만 삭제
+            deleteUserTripData(tripId, userId);
+            return false;
+        }
+    }
+
+    // 여행과 관련된 모든 데이터 베이스 삭제
+    private void deleteAllTripData(int tripId) {
+        // 외래키 제약조건을 고려한 삭제 순서
+
+        // 1. AI 스토리 삭제 (모든 사용자)
+        aiStoryRepository.deleteByTripId(tripId);
+
+        // 2. 여행 기록 삭제 (모든 사용자)
+        tripRecordRepository.deleteByTripId(tripId);
+
+        // 3. 여행 계획 삭제
+        tripPlanRepository.deleteByTripId(tripId);
+
+        // 4. 여행 참여자 삭제
+        tripParticipantRepository.deleteByTripId(tripId);
+
+        // 5. 여행 정보 삭제
+        tripRepository.deleteById(tripId);
+    }
+
+    // 특정 사용자의 여행 관련 개인 데이터를 삭제합니다.
+    private void deleteUserTripData(int tripId, int userId) {
+        // 해당 사용자의 AI 스토리 삭제
+        aiStoryRepository.deleteByTripIdAndUserId(tripId, userId);
+
+        // 해당 사용자의 여행 기록 삭제
+        tripRecordRepository.deleteByTripIdAndUserId(tripId, userId);
+    }
 }
