@@ -16,5 +16,7 @@ public class TripRecordSaveRequestDto {
         private int day;
         private LocalDate date;
         private String memo;
+        private String imageUrl;      // 추가된 필드
+        private String originalName;  // 추가된 필드
     }
 }
