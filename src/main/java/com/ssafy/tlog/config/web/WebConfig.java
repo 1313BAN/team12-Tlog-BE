@@ -14,8 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:5173",
                         "http://localhost:5174",
                         "https://team12-tlog-fe.vercel.app",
-                        "https://t-log.kro.kr",  // 새 도메인 추가
-                        "http://t-log.kro.kr"   // HTTP도 임시로 추가 (테스트용)
+                        "https://t-log.kro.kr"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
@@ -29,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://team12-tlog-fe.vercel.app",
                         "https://t-log.kro.kr"  // 새 도메인 추가
                 )
-                .allowedMethods("GET")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false);
     }

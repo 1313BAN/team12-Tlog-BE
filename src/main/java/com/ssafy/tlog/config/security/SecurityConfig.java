@@ -52,6 +52,7 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name","/api/auth/refresh").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
+                    .requestMatchers("/api/home/**").permitAll()
                     .anyRequest().authenticated()
             )
             .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
