@@ -47,24 +47,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
         http.cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-name","/api/auth/refresh").permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
-                    .requestMatchers("/api/home/**").permitAll()
-                    .anyRequest().authenticated()
-            )
-            .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex
-                    .authenticationEntryPoint((request, response, authException) -> {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json; charset=UTF-8");
-                        response.getWriter().write("{\"statusCode\":401,\"errorCode\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
-                    })
-            );
+                .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login",
+                                "/api/auth/signup",
+                                "/api/auth/check-name",
+                                "/api/auth/refresh",
+                                "/api/home/*",
+                                "/api/users/check",
+                                "/images/**"
+                        ).permitAll()  // 로그인, 회원가입, 닉네임 확인은 인증 없이 접근 가능
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json; charset=UTF-8");
+                            response.getWriter()
+                                    .write("{\"statusCode\":401,\"errorCode\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
+                        })
+                );
 
         return http.build();
     }

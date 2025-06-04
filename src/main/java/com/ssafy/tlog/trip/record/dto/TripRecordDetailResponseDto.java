@@ -45,5 +45,7 @@ public class TripRecordDetailResponseDto {
         private int day;
         private LocalDateTime date;
         private String memo;
+        private String imageUrl;      // 추가된 필드
+        private String originalName;  // 추가된 필드
     }
 }
