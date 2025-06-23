@@ -1,0 +1,28 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH로 EC2에 접속하기
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+        with:
+          host: ${{ secrets.EC2_HOST }}           # EC2 IP 주소
+          username: ${{ secrets.EC2_USERNAME }}   # 접속 사용자명
+          key: ${{ secrets.EC2_PRIVATE_KEY }}     # .pem 키 파일 내용
+          envs: APPLICATION_PROPERTIES
+          script_stop: true                       # 실패 시 중단
+          script: |
+            cd /home/ec2-user/team12-Tlog-BE
+            git pull origin main
+            echo "$APPLICATION_PROPERTIES" > src/main/resources/application-local.properties
+            ./gradlew build -x test
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -jar build/libs/Tlog-0.0.1-DEMO.jar > ./output.log 2>&1 &
