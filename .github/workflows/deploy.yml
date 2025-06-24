@@ -28,5 +28,5 @@ jobs:
             sleep 3
             
             ./gradlew build -x test
-            
-            nohup java -jar build/libs/Tlog-0.0.1-DEMO.jar > ./output.log 2>&1 &
+
+            nohup java -Xms256m -Xmx400m -XX:+UseSerialGC -jar build/libs/Tlog-0.0.1-DEMO.jar > ./output.log 2>&1 &
