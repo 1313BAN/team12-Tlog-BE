@@ -21,6 +21,9 @@ jobs:
       - name: application-local.properties 파일 만들기
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application-local.properties
 
+      - name: gradlew 실행 권한 부여
+        run: chmod +x ./gradlew
+
       - name: 테스트는 제외하고 빌드하기
         run: ./gradlew build -x test
 
