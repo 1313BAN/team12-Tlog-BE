@@ -23,6 +23,10 @@ jobs:
             cd /home/ec2-user/team12-Tlog-BE
             git pull origin main
             echo "$APPLICATION_PROPERTIES" > src/main/resources/application-local.properties
-            ./gradlew build -x test
+            
             sudo fuser -k -n tcp 8080 || true
+            sleep 3
+            
+            ./gradlew build -x test
+            
             nohup java -jar build/libs/Tlog-0.0.1-DEMO.jar > ./output.log 2>&1 &
