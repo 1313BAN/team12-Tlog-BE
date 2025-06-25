@@ -30,27 +30,22 @@ jobs:
       - name: 빌드된 파일 이름 변경하기
         run: mv ./build/libs/Tlog-0.0.1-DEMO.jar ./Tlog-0.0.1-DEMO.jar
 
-      - name: SCP로 EC2에 빌드된 파일 전송하기
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}           # EC2 IP 주소
-          username: ${{ secrets.EC2_USERNAME }}   # 접속 사용자명
-          key: ${{ secrets.EC2_PRIVATE_KEY }}     # .pem 키 파일 내용
-          source: Tlog-0.0.1-DEMO.jar
-          target: /home/ec2-user/team12-Tlog-BE/tobe
+      - name: 압축하기
+        run: tar -czvf $GITHUB_SHA.tar.gz Tlog-0.0.1-DEMO.jar appspec.yml scripts
 
-      - name: SSH로 EC2에 접속하기
-        uses: appleboy/ssh-action@v1.0.3
+      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}           # EC2 IP 주소
-          username: ${{ secrets.EC2_USERNAME }}   # 접속 사용자명
-          key: ${{ secrets.EC2_PRIVATE_KEY }}     # .pem 키 파일 내용
-          script_stop: true
-          script: |
-            rm -rf /home/ec2-user/team12-Tlog-BE/current
-            mkdir /home/ec2-user/team12-Tlog-BE/current
-            mv /home/ec2-user/team12-Tlog-BE/tobe/Tlog-0.0.1-DEMO.jar /home/ec2-user/team12-Tlog-BE/current/Tlog-0.0.1-DEMO.jar
-            cd /home/ec2-user/team12-Tlog-BE/current
-            sudo fuser -k -n tcp 8080 || true
-            nohup java -jar Tlog-0.0.1-DEMO.jar > ./output.log 2>&1 &
-            rm -rf /home/ec2-user/team12-Tlog-BE/tobe
+         aws-region: ap-northeast-2
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: S3에 프로젝트 폴더 업로드 하기
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://ssafy-tlog-server-deploy/$GITHUB_SHA.tar.gz
+
+      - name: CodeDeploy를 활용해 EC2에 프로젝트 코드 배포
+        run: aws deploy create-deployment
+          --application-name ssafy
+          --deployment-config-name CodeDeployDefault.AllAtOnce
+          --deployment-group-name Production
+          --s3-location bucket=ssafy-tlog-server-deploy,bundleType=tgz,key=$GITHUB_SHA.tar.gz
