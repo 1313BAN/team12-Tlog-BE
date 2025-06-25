@@ -49,3 +49,4 @@ jobs:
           --deployment-config-name CodeDeployDefault.AllAtOnce
           --deployment-group-name ssafy
           --s3-location bucket=ssafy-tlog-server-deploy,bundleType=tgz,key=$GITHUB_SHA.tar.gz
+          
