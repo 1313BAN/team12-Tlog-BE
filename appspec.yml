@@ -1,0 +1,19 @@
+version: 0.0
+os: linux
+
+files:
+  # S3에 저장한 파일들 중 destination(AWS EC2)으로 이동시킬 대상을 지정
+  - source: /
+    # EC2의 어떤 경로에 저장할 지 지정
+    destination: /home/ec2-user/team12-Tlog-BE
+
+permissions:
+  - object: /
+    owner: ec2-user
+    group: ec2-user
+
+hooks:
+  ApplicationStart:
+    - location: scripts/start-server.sh
+      timeout: 60
+      runas: ec2-user
