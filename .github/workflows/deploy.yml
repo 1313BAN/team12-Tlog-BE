@@ -47,5 +47,5 @@ jobs:
         run: aws deploy create-deployment
           --application-name ssafy
           --deployment-config-name CodeDeployDefault.AllAtOnce
-          --deployment-group-name Production
+          --deployment-group-name ssafy
           --s3-location bucket=ssafy-tlog-server-deploy,bundleType=tgz,key=$GITHUB_SHA.tar.gz
